@@ -5,8 +5,10 @@ Created on Fri Mar  4 23:00:43 2016
 
 @author: ddboline
 """
+import argparse
 import os
 from subprocess import call
+
 from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.util import (play_file, remove_remote_file, HOMEDIR,
                                        get_remote_file, get_remote_files,
@@ -187,3 +189,33 @@ def make_web_page_from_string(in_list=None,
                           '%03i\t%s</a>\n</H3>\n\n' % (idx, vidname))
         vidfile.write('</body>\n')
         vidfile.write('</html>\n')
+
+
+def make_queue_parse():
+    parser = argparse.ArgumentParser(description='make_queue script')
+    parser.add_argument('command', nargs='*', help=help_text)
+    args = parser.parse_args()
+
+    _command = 'list'
+    _args = []
+
+    if hasattr(args, 'command'):
+        if len(args.command) > 0:
+            _command = args.command[0]
+            if _command not in list_of_commands:
+                try:
+                    _command = int(_command)
+                except ValueError:
+                    print(help_text)
+                    exit(0)
+        if len(args.command) > 1:
+            for it_ in args.command[1:]:
+                try:
+                    it_ = int(it_)
+                except ValueError:
+                    pass
+                _args.append(it_)
+
+    out_list = make_queue(_command=_command, _args=_args)
+    if len(out_list) > 0:
+        print('\n'.join(out_list))

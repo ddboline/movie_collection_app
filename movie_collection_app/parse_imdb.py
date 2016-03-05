@@ -139,7 +139,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                                epi_url)
 
 
-if __name__ == '__main__':
+def parse_imdb_argparse():
     name = []
     do_tv = False
     season = None
@@ -160,11 +160,28 @@ if __name__ == '__main__':
 
     name = ' '.join(name)
 
+    mc_ = MovieCollection()
+
     if do_tv:
         title, imdb_link, rating = parse_imdb_mobile_tv(name)
+        show_ = ''
+        for show, val in mc_.imdb_ratings.items():
+            if val['link'] == imdb_link:
+                show_ = show
+                break
         print(title, imdb_link, rating)
-        for item in parse_imdb_episode_list(imdb_link, season=season):
-            season_, episode, airdate, ep_rating, ep_title, ep_url = item
+        if season == -1:
+            for item in parse_imdb_episode_list(imdb_link, season=season):
+                season_, episode, airdate, ep_rating, ep_title, ep_url = item
+                print(title, season_)
+        mc_.get_imdb_episode_ratings(show=show_, season=season)
+        for (season_, episode) in sorted(mc_.imdb_episode_ratings[show_]):
+            if season and season != season_:
+                continue
+            row = mc_.imdb_episode_ratings[show_][(season_, episode)]
+            airdate = row['airdate']
+            ep_rating = row['rating']
+            ep_title = row['eptitle']
             print(title, season_, episode, airdate, ep_rating, ep_title)
     else:
         for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name)):
