@@ -140,6 +140,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
 
 
 def parse_imdb_argparse():
+    from movie_collection_app.movie_collection import MovieCollection
     name = []
     do_tv = False
     season = None

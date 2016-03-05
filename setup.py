@@ -24,7 +24,7 @@ setup(
                       'psycopg2', 'Flask'],
     packages=['movie_collection_app'],
     package_dir={'movie_collection_app': 'movie_collection_app'},
-#    package_data={'sync_app': ['templates/*.html']},
+    #package_data={'sync_app': ['templates/*.html']},
     entry_points={'console_scripts':
                   ['make-queue = '
                    'movie_collection_app.make_queue:make_queue_parse',
