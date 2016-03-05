@@ -142,4 +142,3 @@ def extract_show(fn_, full_path=True):
         show = fn_.split('/')[-1].split('.')[0]
         type_ = 'movie'
     return show, type_
-

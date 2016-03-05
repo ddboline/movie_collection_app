@@ -14,12 +14,12 @@ from collections import defaultdict
 from sqlalchemy import create_engine
 from subprocess import call
 
-from movie_collection.parse_imdb import (parse_imdb_mobile_tv, parse_imdb,
-                                         parse_imdb_episode_list)
-from movie_collection.util import (
+from movie_collection_app.parse_imdb import (parse_imdb_mobile_tv, parse_imdb,
+                                             parse_imdb_episode_list)
+from movie_collection_app.util import (
     POSTGRESTRING, HOSTNAME, extract_show, get_season_episode_from_name,
     remove_remote_file, has_been_downloaded, get_remote_file, read_time,
-    print_h_m_s)
+    print_h_m_s, play_file)
 
 
 class MovieCollection(object):
@@ -128,7 +128,6 @@ class MovieCollection(object):
                     continue
                 for item in parse_imdb_episode_list(imdb_id=url,
                                                     season=season_):
-                    print(item)
                     se_, epi, ad_, rt_, eti, eurl = item
                     itdict = {'id': idx, 'show': show_, 'season': se_,
                               'episode': epi, 'epurl': eurl, 'airdate': ad_,
