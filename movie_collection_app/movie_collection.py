@@ -83,12 +83,18 @@ class MovieCollection(object):
         show, type_ = extract_show(fn_)
         if show in self.imdb_ratings:
             return self.imdb_ratings[show]
+        show_ = show.replace('_', ' ')
+        title = None
         if type_ == 'tv':
-            title, imdb_link, rating = parse_imdb_mobile_tv(show)
+            title, imdb_link, rating = parse_imdb_mobile_tv(show_)
         else:
-            for title, imdb_link, rating in parse_imdb(show):
-                if 'TV Series' not in title:
+            for title, imdb_link, rating in parse_imdb(show_):
+                if 'TV Series' not in title and 'TV Mini-Series' not in title:
                     break
+        if title is None:
+            return {'show': show, 'title': title, 'link': None,
+                    'rating': -1, 'istv': False, 'index': -1}
+        title = title.replace("'", '')
         print(show, title, imdb_link, rating)
         idx = list(self.con.execute("select max(index) from imdb_ratings"))
         idx = idx[0][0]
@@ -211,6 +217,9 @@ class MovieCollection(object):
                 self.con.execute(
                     "insert into movie_collection (idx, path, show) values "
                     "(%d, '%s', '%s')" % (idx_, fname, show))
+        self.read_queue_from_db()
+        self.read_imdb_ratings()
+        self.read_imdb_episodes()
         return ['add %s to queue at %d' % (fname, position)], 1
 
     def add_entry_to_collection(self, fname):
@@ -236,8 +245,12 @@ class MovieCollection(object):
         self.con.execute(
             "insert into movie_collection (idx, path, show) values "
             "(%d, '%s', '%s')" % (idx_, fname, show))
-        self.read_queue_from_db()
-        return ['add %s to queue at %d' % (fname, idx_)], 1
+        row_dict = {'idx': idx_, 'path': fname, 'show': show}
+        self.movie_collection[row_dict['path']] = row_dict
+
+        self.read_imdb_ratings()
+        self.read_imdb_episodes()
+        return ['add %s to collection at %d' % (fname, idx_)], 1
 
     def rm_entry(self, position, purge=False):
         ''' remove entry from queue '''

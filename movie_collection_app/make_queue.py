@@ -90,9 +90,6 @@ def make_queue(_command='list', _args=None):
             if os.path.exists(arg):
                 tmp_, _ = mq_.add_entry(arg)
                 out_list += tmp_
-                mq_.read_queue_from_db()
-                mq_.read_imdb_ratings()
-                mq_.read_imdb_episodes()
     elif _command == 'addcol' and len(_args) > 0:
         for arg in _args:
             if os.path.exists(arg):

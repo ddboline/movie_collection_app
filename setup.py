@@ -32,5 +32,9 @@ setup(
                    'movie_collection_app.parse_imdb:parse_imdb_argparse',
                    'movie-queue-flask = '
                    'movie_collection_app.movie_queue_flask:'
-                   'run_make_queue_flask']}
+                   'run_make_queue_flask',
+                   'make-collection = movie_collection_app.make_collection:'
+                   'make_collection',
+                   'make-list = movie_collection_app.make_list:'
+                   'make_list_main']}
 )

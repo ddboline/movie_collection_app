@@ -175,15 +175,21 @@ def parse_imdb_argparse():
             for item in parse_imdb_episode_list(imdb_link, season=season):
                 season_, episode, airdate, ep_rating, ep_title, ep_url = item
                 print(title, season_)
-        mc_.get_imdb_episode_ratings(show=show_, season=season)
-        for (season_, episode) in sorted(mc_.imdb_episode_ratings[show_]):
-            if season and season != season_:
-                continue
-            row = mc_.imdb_episode_ratings[show_][(season_, episode)]
-            airdate = row['airdate']
-            ep_rating = row['rating']
-            ep_title = row['eptitle']
-            print(title, season_, episode, airdate, ep_rating, ep_title)
+        elif show_:
+            mc_.get_imdb_episode_ratings(show=show_, season=season)
+            mc_.read_imdb_episodes()
+            for (season_, episode) in sorted(mc_.imdb_episode_ratings[show_]):
+                if season and season != season_:
+                    continue
+                row = mc_.imdb_episode_ratings[show_][(season_, episode)]
+                airdate = row['airdate']
+                ep_rating = row['rating']
+                ep_title = row['eptitle']
+                print(title, season_, episode, airdate, ep_rating, ep_title)
+        else:
+            for item in parse_imdb_episode_list(imdb_link, season=season):
+                season_, episode, airdate, ep_rating, ep_title, ep_url = item
+                print(title, season_, episode, airdate, ep_rating, ep_title)
     else:
         for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name)):
             print(idx, title, imdb_link, rating)
