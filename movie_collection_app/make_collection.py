@@ -46,10 +46,10 @@ def search_collection(search_strs):
     output_str = []
     mq_ = MovieCollection()
 
-    for path in mq_.queue_dict:
+    for path in mq_.movie_collection:
         if any(x in path for x in search_strs):
-            path_ = mq_.queue_dict[path]['path']
-            show_ = mq_.queue_dict[path]['show']
+            path_ = mq_.movie_collection[path]['path']
+            show_ = mq_.movie_collection[path]['show']
             imdb_ = mq_.imdb_ratings[show_]
             title_ = imdb_['title']
             rating_ = imdb_['rating']
