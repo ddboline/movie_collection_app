@@ -222,6 +222,23 @@ class MovieCollection(object):
         self.read_imdb_episodes()
         return ['add %s to queue at %d' % (fname, position)], 1
 
+    def rm_entry(self, position, purge=False):
+        ''' remove entry from queue '''
+        remove_remote_file(self.current_queue[position]['path'])
+        try:
+            tmp_val = self.current_queue.pop(position)
+            self.con.execute("delete from current_queue where idx = %d"
+                             % tmp_val['idx'])
+            self.con.execute("update current_queue set idx = idx - 1 "
+                             "where idx > %d" % tmp_val['idx'])
+        except IndexError:
+            return []
+        out_list = ['rm %s from queue' % tmp_val['path']]
+        if purge and HOSTNAME == 'dilepton-tower':
+            call('rm %s' % tmp_val['path'], shell=True)
+            out_list += ['delete %s' % (tmp_val['path'])]
+        return out_list
+
     def add_entry_to_collection(self, fname):
         if fname in self.movie_collection:
             return
@@ -252,22 +269,40 @@ class MovieCollection(object):
         self.read_imdb_episodes()
         return ['add %s to collection at %d' % (fname, idx_)], 1
 
-    def rm_entry(self, position, purge=False):
-        ''' remove entry from queue '''
-        remove_remote_file(self.current_queue[position]['path'])
-        try:
-            tmp_val = self.current_queue.pop(position)
-            self.con.execute("delete from current_queue where idx = %d"
-                             % tmp_val['idx'])
-            self.con.execute("update current_queue set idx = idx - 1 "
-                             "where idx > %d" % tmp_val['idx'])
-        except IndexError:
-            return []
-        out_list = ['rm %s from queue' % tmp_val['path']]
-        if purge and HOSTNAME == 'dilepton-tower':
-            call('rm %s' % tmp_val['path'], shell=True)
-            out_list += ['delete %s' % (tmp_val['path'])]
-        return out_list
+    def rm_entry_from_collection(self, fname):
+        if fname not in self.movie_collection:
+            return
+        self.con.execute("delete from movie_collection where path='%s'"
+                         % fname)
+        self.movie_collection.pop(fname)
+
+    def rm_entry_from_ratings(self, show):
+        if show not in self.imdb_ratings:
+            return
+        self.con.execute("delete from imdb_ratings where show='%s'" % show)
+
+    def rm_entry_from_episodes(self, show, season=-1, episode=-1):
+        if show not in self.imdb_episode_ratings:
+            return
+        if season == -1 and episode == -1:
+            self.con.execute("delete from imdb_episodes where show='%s'"
+                             % show)
+            self.imdb_episode_ratings.pop(show)
+        elif episode == -1:
+            self.con.execute(
+                "delete from imdb_episodes where show='%s' and season=%d"
+                % (show, season))
+            for (season_, episode_) in self.imdb_episode_ratings[show]:
+                if season_ == season:
+                    self.imdb_episode_ratings[show].pop((season_, episode_))
+        else:
+            if (season, episode) not in self.imdb_episode_ratings[show]:
+                return
+            self.con.execute(
+                "delete from imdb_episodes "
+                "where show='%s' and season=%d and episode=%d"
+                % (show, season, episode))
+            self.imdb_episode_ratings[show].pop((season, episode))
 
     def show_entry_by_name(self, name):
         ''' return entry in queue containing name '''
