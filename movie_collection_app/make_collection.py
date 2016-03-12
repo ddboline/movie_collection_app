@@ -26,20 +26,48 @@ movie_dirs = ('/media/sabrent2000/Documents/movies',
 
 
 def make_collection():
+    all_files = set()
+    all_shows = set()
+
     mq_ = MovieCollection()
 
     def parse_dir(_, path, filelist):
         for fname in filelist:
             fullpath = '%s/%s' % (path, fname)
-            print(fullpath)
             if os.path.isdir(fullpath):
                 continue
             if not any(fname.endswith(x) for x in file_formats):
                 continue
+            all_files.add(fullpath)
+            if fullpath in mq_.movie_collection:
+                all_shows.add(mq_.movie_collection[fullpath]['show'])
+                continue
+            print(fullpath)
             mq_.add_entry_to_collection(fullpath)
+            all_shows.add(mq_.movie_collection[fullpath]['show'])
 
     for dir_ in movie_dirs:
         walk_wrapper(dir_, parse_dir, None)
+
+    fnames = mq_.movie_collection.keys()
+
+    print(len(all_files), len(all_shows), len(mq_.movie_collection))
+
+    for fname in fnames:
+        if fname in all_files:
+            continue
+        print('file %s not on disk' % fname)
+        mq_.rm_entry_from_collection(fname)
+
+    for show in mq_.imdb_ratings:
+        if show in all_shows:
+            continue
+        print('show %s not on disk: %s %s' % (
+            show, mq_.imdb_ratings[show]['rating'],
+            mq_.imdb_ratings[show]['title']))
+        mq_.rm_entry_from_ratings(show)
+
+    print(len(mq_.imdb_ratings), len(mq_.imdb_episode_ratings))
 
 
 def search_collection(search_strs):
@@ -61,10 +89,10 @@ def search_collection(search_strs):
                     imdb_ = mq_.imdb_episode_ratings.get(show_, {})\
                                                     .get((season, episode),
                                                          imdb_)
-                    imdb_str = '%s/%s s%02d ep%02d %s %s' % (imdb_['rating'],
-                                                             rating_, season,
-                                                             episode, title_,
-                                                             imdb_['eptitle'])
+                    if 'eptitle' in imdb_:
+                        imdb_str = '%s/%s s%02d ep%02d %s %s' % (
+                            imdb_['rating'], rating_, season, episode, title_,
+                            imdb_['eptitle'])
             output_str.append(' '.join((path_, show_, imdb_str)))
     return sorted(output_str)
 
