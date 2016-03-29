@@ -17,12 +17,18 @@ except ImportError:
 COMMANDS = ('dvd', 'tv', 'notv', 'list', 'time', 'col', 'mov', 'dsk', 'rand',
             'uniq_tv', 'uniq_notv')
 
+#MOVIE_DIRS = ('/media/sabrent2000/Documents/movies',
+              #'/media/caviar2000/Documents/movies',
+              #'/media/nexstarext4/Documents/movies',
+              #'/media/sabrent2000/television/unwatched',
+              #'/media/western2000/Documents/movies',
+              #'/media/western2000/television/unwatched')
+
 MOVIE_DIRS = ('/media/sabrent2000/Documents/movies',
-              '/media/caviar2000/Documents/movies',
-              '/media/nexstarext4/Documents/movies',
-              '/media/sabrent2000/television/unwatched',
-              '/media/western2000/Documents/movies',
-              '/media/western2000/television/unwatched')
+              #'/media/dileptonnas/Documents/movies',
+              #'/media/dileptonnas/Documents/television',
+              '/media/sabrent2000/television/unwatched',)
+
 HOMEDIR = os.getenv('HOME')
 COLLECTION_DIR = '%s/Dropbox/movie_collection' % HOMEDIR
 

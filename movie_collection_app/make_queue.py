@@ -215,4 +215,8 @@ def make_queue_parse():
 
     out_list = make_queue(_command=_command, _args=_args)
     if len(out_list) > 0:
-        print('\n'.join(out_list))
+        out_list = '\n'.join(out_list)
+        try:
+            print(out_list)
+        except IOError:
+            pass

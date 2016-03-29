@@ -1,11 +1,14 @@
 #!/usr/bin/python
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import os
+import argparse
 import requests
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
 from urllib import urlencode
+
+list_of_commands = ('tv', 'season=<>')
+help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
 
 def parse_imdb(title='the bachelor'):
@@ -92,7 +95,6 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
             link = a.attrs['href']
             season_ = int(a.attrs.get('season_number', -1))
             if season == -1 and season_ != -1:
-#                print('season %d' % season_)
                 yield season_, -1, None, -1, 'season', None
                 continue
             if season is not None and season != season_:
@@ -141,23 +143,29 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
 
 def parse_imdb_argparse():
     from movie_collection_app.movie_collection import MovieCollection
+
+    parser = argparse.ArgumentParser(description='parse_imdb script')
+    parser.add_argument('command', nargs='*', help=help_text)
+    args = parser.parse_args()
+
     name = []
     do_tv = False
     season = None
-    for arg in os.sys.argv:
-        if arg == 'tv':
-            do_tv = True
-        elif 'season=' in arg:
-            tmp = arg.replace('season=', '')
-            try:
-                season = int(tmp)
-            except ValueError:
-                pass
-            continue
-        elif 'parse_imdb' in arg or 'python' in arg:
-            continue
-        else:
-            name.append(arg.replace('_', ' '))
+    if hasattr(args, 'command'):
+        for arg in args.command:
+            if arg == 'h':
+                print(help_text)
+            elif arg == 'tv':
+                do_tv = True
+            elif 'season=' in arg:
+                tmp = arg.replace('season=', '')
+                try:
+                    season = int(tmp)
+                except ValueError:
+                    pass
+                continue
+            else:
+                name.append(arg.replace('_', ' '))
 
     name = ' '.join(name)
 
@@ -192,4 +200,6 @@ def parse_imdb_argparse():
                 print(title, season_, episode, airdate, ep_rating, ep_title)
     else:
         for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name)):
+            if idx > 2:
+                break
             print(idx, title, imdb_link, rating)

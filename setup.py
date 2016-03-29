@@ -14,7 +14,7 @@ from setuptools import setup
 
 setup(
     name='movie_collection_app',
-    version='0.0.0.1',
+    version='0.0.0.2',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',
@@ -34,7 +34,7 @@ setup(
                    'movie_collection_app.movie_queue_flask:'
                    'run_make_queue_flask',
                    'make-collection = movie_collection_app.make_collection:'
-                   'make_collection',
+                   'make_collection_parse',
                    'make-list = movie_collection_app.make_list:'
                    'make_list_main']}
 )

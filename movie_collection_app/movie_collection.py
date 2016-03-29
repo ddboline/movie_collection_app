@@ -139,6 +139,7 @@ class MovieCollection(object):
                               'episode': epi, 'epurl': eurl, 'airdate': ad_,
                               'rating': rt_, 'eptitle': eti}
                     epi_rating_items.append(itdict)
+#                    print(itdict)
                     idx += 1
             for itdict in epi_rating_items:
                 season_ = itdict['season']

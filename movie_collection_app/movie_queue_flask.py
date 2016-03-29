@@ -205,7 +205,7 @@ def request_transcode(show):
             except ValueError:
                 continue
         if avifile:
-            call(['/home/ddboline/bin/transcode_avi', avifile])
+            call(['/home/ddboline/bin/transcode_avi', avifile, 'add'])
             return '', 200
     except Error as e:
         raise e

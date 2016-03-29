@@ -11,18 +11,19 @@ import os
 import argparse
 
 from movie_collection_app.movie_collection import MovieCollection
-from movie_collection_app.util import (walk_wrapper,
-                                       get_season_episode_from_name)
+from movie_collection_app.util import (walk_wrapper, read_time,
+                                       get_season_episode_from_name,
+                                       print_h_m_s)
 
 file_formats = ('mp4', 'mkv', 'avi')
 list_of_commands = ('parse', 'list', 'time', 'mov')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 movie_dirs = ('/media/sabrent2000/Documents/movies',
-              '/media/caviar2000/Documents/movies',
-              '/media/nexstarext4/Documents/movies',
+              '/media/sabrent2000/Documents/television',
+              '/media/dileptonnas/Documents/movies',
+              '/media/dileptonnas/Documents/television',
               '/media/sabrent2000/television/unwatched',
-              '/media/western2000/Documents/movies',
-              '/media/western2000/television/unwatched')
+              '/media/western2000/Documents/movies',)
 
 
 def make_collection():
@@ -56,21 +57,25 @@ def make_collection():
     for fname in fnames:
         if fname in all_files:
             continue
+        if 'caviar2000' in fname:
+            continue
         print('file %s not on disk' % fname)
         mq_.rm_entry_from_collection(fname)
 
     for show in mq_.imdb_ratings:
         if show in all_shows:
             continue
-        print('show %s not on disk: %s %s' % (
-            show, mq_.imdb_ratings[show]['rating'],
-            mq_.imdb_ratings[show]['title']))
-        mq_.rm_entry_from_ratings(show)
+        rating_obj = mq_.imdb_ratings.get(show, None)
+        if rating_obj:
+            print('show %s not on disk: %s %s' % (
+                show, mq_.imdb_ratings[show]['rating'],
+                mq_.imdb_ratings[show]['title']))
+#            mq_.rm_entry_from_ratings(show)
 
     print(len(mq_.imdb_ratings), len(mq_.imdb_episode_ratings))
 
 
-def search_collection(search_strs):
+def search_collection(search_strs, do_time=False):
     output_str = []
     mq_ = MovieCollection()
 
@@ -82,6 +87,7 @@ def search_collection(search_strs):
             title_ = imdb_['title']
             rating_ = imdb_['rating']
             imdb_str = '%s %s' % (rating_, title_)
+            time_str = ''
             season, episode = -1, -1
             if imdb_['istv']:
                 season, episode = get_season_episode_from_name(path_, show_)
@@ -93,7 +99,14 @@ def search_collection(search_strs):
                         imdb_str = '%s/%s s%02d ep%02d %s %s' % (
                             imdb_['rating'], rating_, season, episode, title_,
                             imdb_['eptitle'])
-            output_str.append(' '.join((path_, show_, imdb_str)))
+                    if do_time:
+                        time_ = read_time(path_)
+                        if time_ > 0:
+                            time_str = print_h_m_s(time_)
+            tmp = [path_, show_, imdb_str]
+            if time_str:
+                tmp.insert(1, time_str)
+            output_str.append(' '.join(tmp))
     return sorted(output_str)
 
 
@@ -124,7 +137,7 @@ def make_collection_parse():
 
     if _command == 'parse':
         make_collection()
-    if _command == 'list':
-        out_list = search_collection(_args)
+    if _command == 'list' or _command == 'time':
+        out_list = search_collection(_args, do_time=(_command == 'time'))
         if len(out_list) > 0:
             print('\n'.join(out_list))
