@@ -25,8 +25,8 @@ COMMANDS = ('dvd', 'tv', 'notv', 'list', 'time', 'col', 'mov', 'dsk', 'rand',
               #'/media/western2000/television/unwatched')
 
 MOVIE_DIRS = ('/media/sabrent2000/Documents/movies',
-              #'/media/dileptonnas/Documents/movies',
-              #'/media/dileptonnas/Documents/television',
+              '/media/dileptonnas/Documents/movies',
+              '/media/dileptonnas/Documents/television',
               '/media/sabrent2000/television/unwatched',)
 
 HOMEDIR = os.getenv('HOME')

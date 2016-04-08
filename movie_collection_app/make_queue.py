@@ -150,7 +150,7 @@ def make_web_page_from_string(in_list=None,
     if HOSTNAME != 'dilepton-tower' or not in_list:
         return
     if do_main_dir and os.path.exists('/var/www/html/videos'):
-        os.system('rm -rf %s' % '/'.join(('/var/www/html/videos', subdir)))
+#        os.system('rm -rf %s' % '/'.join(('/var/www/html/videos', subdir)))
         os.system('mkdir -p %s' % '/'.join(('/var/www/html/videos', subdir)))
     with open(queue_file, 'w') as vidfile:
         vidfile.write('<!DOCTYPE HTML>\n')
@@ -177,9 +177,12 @@ def make_web_page_from_string(in_list=None,
                                        'movies3')
             if do_main_dir and os.path.exists('/'.join(('/var/www/html/videos',
                                                         subdir))):
-                os.system('ln -s %s %s/%s'
-                          % (cur, '/'.join(('/var/www/html/videos', subdir)),
-                             os.path.basename(cur)))
+                link_path = '%s/%s' % (
+                    '/'.join(('/var/www/html/videos', subdir)),
+                    os.path.basename(cur))
+                if not os.path.exists(link_path):
+                    os.system('rm -rf %s' % link_path)
+                    os.system('ln -s %s %s' % (cur, link_path))
                 vidfname = '../videos/%s' % os.path.basename(cur)
             vidname = cur.split('/')[-1].replace('_', ' ')
             vidfile.write('<H3 align="center">\n<a href="../%s">' % vidfname +

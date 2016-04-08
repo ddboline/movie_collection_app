@@ -80,6 +80,8 @@ def search_collection(search_strs, do_time=False):
     mq_ = MovieCollection()
 
     for path in mq_.movie_collection:
+        if 'caviar2000' in path:
+            continue
         if any(x in path for x in search_strs):
             path_ = mq_.movie_collection[path]['path']
             show_ = mq_.movie_collection[path]['show']
@@ -99,10 +101,10 @@ def search_collection(search_strs, do_time=False):
                         imdb_str = '%s/%s s%02d ep%02d %s %s' % (
                             imdb_['rating'], rating_, season, episode, title_,
                             imdb_['eptitle'])
-                    if do_time:
-                        time_ = read_time(path_)
-                        if time_ > 0:
-                            time_str = print_h_m_s(time_)
+            if do_time:
+                time_ = read_time(path_)
+                if time_ > 0:
+                    time_str = print_h_m_s(time_)
             tmp = [path_, show_, imdb_str]
             if time_str:
                 tmp.insert(1, time_str)
