@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import argparse
 import requests
+import time
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
 from urllib import urlencode
@@ -11,9 +12,23 @@ list_of_commands = ('tv', 'season=<>')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
 
+def t_request(endpoint):
+    timeout = 1
+    while True:
+        try:
+            return requests.get(endpoint)
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.HTTPError) as exc:
+            print('timeout %s, %s' % (timeout, exc))
+            time.sleep(timeout)
+            timeout *= 2
+            if timeout >= 64:
+                raise
+
+
 def parse_imdb(title='the bachelor'):
-    resp = requests.get('http://www.imdb.com/find?%s'
-                        % urlencode({'s': 'all', 'q': title}))
+    resp = t_request('http://www.imdb.com/find?%s' % urlencode({'s': 'all',
+                                                                'q': title}))
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -30,12 +45,7 @@ def parse_imdb(title='the bachelor'):
 
 
 def parse_imdb_rating(title='tt0313038'):
-    try:
-        resp_ = requests.get('http://www.imdb.com/title/%s'
-                             % title)
-    except requests.exceptions.ConnectionError as exc:
-        print(title, exc)
-        raise
+    resp_ = t_request('http://www.imdb.com/title/%s' % title)
     soup_ = BeautifulSoup(resp_.text, 'html.parser')
     for span in soup_.find_all('span'):
         if 'itemprop' in span.attrs and span.attrs.get(
@@ -46,8 +56,7 @@ def parse_imdb_rating(title='tt0313038'):
 
 def parse_imdb_mobile_tv(title='the bachelor'):
     try:
-        resp = requests.get('http://m.imdb.com/find?%s'
-                            % urlencode({'q': title}))
+        resp = t_request('http://m.imdb.com/find?%s' % urlencode({'q': title}))
     except requests.exceptions.ConnectionError as exc:
         print(title, exc)
         raise
@@ -62,8 +71,7 @@ def parse_imdb_mobile_tv(title='the bachelor'):
                 if hasattr(a, 'attrs'):
                     link = a.attrs['href'].split('/')[2]
                     try:
-                        resp_ = requests.get('http://m.imdb.com/title/%s'
-                                             % link)
+                        resp_ = t_request('http://m.imdb.com/title/%s' % link)
                     except requests.exceptions.ConnectionError as exc:
                         print(link, exc)
                         raise
@@ -82,7 +90,7 @@ def parse_imdb_mobile_tv(title='the bachelor'):
 
 def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
     try:
-        resp = requests.get('http://m.imdb.com/title/%s/episodes' % imdb_id)
+        resp = t_request('http://m.imdb.com/title/%s/episodes' % imdb_id)
     except requests.exceptions.ConnectionError as exc:
         print(imdb_id, exc)
         return
@@ -101,7 +109,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                 continue
             episodes_url = 'http://www.imdb.com/title/%s/episodes/%s' \
                            % (imdb_id, link)
-            resp_ = requests.get(episodes_url)
+            resp_ = t_request(episodes_url)
             soup_ = BeautifulSoup(resp_.text, 'html.parser')
             for div in soup_.find_all('div'):
                 if 'info' in div.attrs.get('class', []) \
