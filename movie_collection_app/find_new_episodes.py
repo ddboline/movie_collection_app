@@ -15,7 +15,7 @@ watchlist = {'12_monkeys', 'adventure_time', 'american_crime_story', 'archer',
              'homeland', 'game_of_thrones', 'the_expanse', 'colony',
              'star_wars_rebels', 'orphan_black', 'lost_girl',
              'man_seeking_woman', 'the_good_wife', 'the_last_ship',
-             'the_leftovers', 'rick_and_morty','vikings'
+             'the_leftovers', 'rick_and_morty', 'vikings',
              'last_week_tonight_with_john_oliver'}
 
 
