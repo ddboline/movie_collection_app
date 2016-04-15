@@ -152,8 +152,10 @@ class MovieCollection(object):
                 if tmp and tmp.get((season_, episode_), {}):
                     self.con.execute("UPDATE imdb_episodes SET "
                                      "rating=%d, epurl='%s' "
-                                     "WHERE season = %d and episode = %d"
-                                     % (rating_, epurl_, season_, episode_))
+                                     "WHERE show = '%s' and season = %d "
+                                     "and episode = %d" % (
+                                         rating_, epurl_, show, season_,
+                                         episode_))
                 else:
                     keys, values = zip(*itdict.items())
                     keys = ', '.join('%s' % x for x in keys)
