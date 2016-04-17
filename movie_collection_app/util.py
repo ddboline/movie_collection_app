@@ -204,7 +204,7 @@ def walk_wrapper(direc, callback, arg):
             callback(arg, dirpath, dirnames + filenames)
 
 
-def sync_sabrent_with_nas():
+def sync_sabrent_with_nas(run_command=True):
     naspath = '/media/dileptonnas/Documents/television'
     sabpath = '/media/sabrent2000/Documents/movies/television'
     dirs = [x.split('/')[-1] for x in glob.glob('%s/*' % naspath)]
@@ -221,12 +221,17 @@ def sync_sabrent_with_nas():
                 sabfile = '%s/%s/%s/%s' % (sabpath, d, season, f)
                 nasfile = '%s/%s/%s/%s' % (naspath, d, season, f)
                 if not os.path.exists('%s/%s/%s' % (naspath, d, season)):
-                    print('%s/%s/%s' % (naspath, d, season))
+                    cmd = 'mkdir -p %s/%s/%s' % (naspath, d, season)
+                    print(cmd)
+                    if run_command:
+                        os.system(cmd)
                 if not os.path.exists(nasfile):
                     cmd = 'cp %s %s' % (sabfile, nasfile)
                     print(cmd)
-#                    os.system(cmd)
+                    if run_command:
+                        os.system(cmd)
                     cmd = 'md5sum %s %s' % (sabfile, nasfile)
                     print(cmd)
-#                    os.system(cmd)
+                    if run_command:
+                        os.system(cmd)
                     time.sleep(1)
