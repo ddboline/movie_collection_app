@@ -11,9 +11,7 @@ import os
 import argparse
 
 from movie_collection_app.movie_collection import MovieCollection
-from movie_collection_app.util import (walk_wrapper, read_time,
-                                       get_season_episode_from_name,
-                                       print_h_m_s)
+from movie_collection_app.util import (walk_wrapper, read_time, print_h_m_s)
 
 file_formats = ('mp4', 'mkv', 'avi')
 list_of_commands = ('parse', 'list', 'time', 'mov')
@@ -85,14 +83,17 @@ def search_collection(search_strs, do_time=False):
         if any(x in path for x in search_strs):
             path_ = mq_.movie_collection[path]['path']
             show_ = mq_.movie_collection[path]['show']
-            imdb_ = mq_.imdb_ratings[show_]
+            imdb_ = mq_.imdb_ratings.get(show_, None)
+            if not imdb_:
+                imdb_ = mq_.get_imdb_rating(path_)
             title_ = imdb_['title']
             rating_ = imdb_['rating']
             imdb_str = '%s %s' % (rating_, title_)
             time_str = ''
             season, episode = -1, -1
             if imdb_['istv']:
-                season, episode = get_season_episode_from_name(path_, show_)
+                tmp = mq_.get_season_episode_from_name(path_, show_)
+                season, episode = tmp
                 if season >= 0 and episode >= 0:
                     imdb_ = mq_.imdb_episode_ratings.get(show_, {})\
                                                     .get((season, episode),
