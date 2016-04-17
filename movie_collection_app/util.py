@@ -7,8 +7,10 @@ Created on Fri Mar  4 20:44:24 2016
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import glob
 import os
 import re
+import time
 from subprocess import call, Popen, PIPE
 
 HOMEDIR = os.getenv('HOME')
@@ -200,3 +202,31 @@ def walk_wrapper(direc, callback, arg):
     elif hasattr(os, 'walk'):
         for dirpath, dirnames, filenames in os.walk(direc):
             callback(arg, dirpath, dirnames + filenames)
+
+
+def sync_sabrent_with_nas():
+    naspath = '/media/dileptonnas/Documents/television'
+    sabpath = '/media/sabrent2000/Documents/movies/television'
+    dirs = [x.split('/')[-1] for x in glob.glob('%s/*' % naspath)]
+    for d in dirs:
+        fpath = '%s/%s' % (sabpath, d)
+        if not os.path.exists(fpath):
+            continue
+        seasons = [x.split('/')[-1] for x in glob.glob('%s/*' % fpath)]
+        for season in seasons:
+            sabfiles = [x.split('/')[-1]
+                        for x in glob.glob('%s/%s/%s/*.mp4'
+                                           % (sabpath, d, season))]
+            for f in sabfiles:
+                sabfile = '%s/%s/%s/%s' % (sabpath, d, season, f)
+                nasfile = '%s/%s/%s/%s' % (naspath, d, season, f)
+                if not os.path.exists('%s/%s/%s' % (naspath, d, season)):
+                    print('%s/%s/%s' % (naspath, d, season))
+                if not os.path.exists(nasfile):
+                    cmd = 'cp %s %s' % (sabfile, nasfile)
+                    print(cmd)
+#                    os.system(cmd)
+                    cmd = 'md5sum %s %s' % (sabfile, nasfile)
+                    print(cmd)
+#                    os.system(cmd)
+                    time.sleep(1)
