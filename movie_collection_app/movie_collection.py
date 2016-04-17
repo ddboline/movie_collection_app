@@ -178,7 +178,6 @@ class MovieCollection(object):
             tmp = [k for k, v in self.imdb_episode_ratings[show].items()
                    if k[0] == season and v['airdate'] == airdate_]
             if len(tmp) == 0:
-                self.get_imdb_episode_ratings(show, season=season)
                 print(fname, airdate_)
                 return show, link, -1, -1
             episode = tmp[0][1]
