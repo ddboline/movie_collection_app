@@ -19,7 +19,7 @@ from movie_collection_app.parse_imdb import (parse_imdb_mobile_tv, parse_imdb,
 from movie_collection_app.util import (
     POSTGRESTRING, HOSTNAME, extract_show, get_season_episode_from_name,
     remove_remote_file, has_been_downloaded, get_remote_file, read_time,
-    print_h_m_s, play_file)
+    print_h_m_s, play_file, get_dailies_airdate)
 
 
 class MovieCollection(object):
@@ -163,6 +163,44 @@ class MovieCollection(object):
                     self.con.execute('INSERT INTO imdb_episodes '
                                      "(%s) VALUES ('%s')" % (keys, values))
 
+    def get_season_episode_rating_from_name(self, fname):
+        dailies = ('the_daily_show', 'the_nightly_show', 'at_midnight')
+        ratings = self.get_imdb_rating(fname)
+        show, link = [ratings.get(x) for x in 'show', 'link']
+        season, episode = get_season_episode_from_name(fname, show)
+        if season == -1 and episode == -1 and show in dailies:
+            airdate_ = get_dailies_airdate(fname, show)
+            if show in self.imdb_episode_ratings \
+                    and self.imdb_episode_ratings[show]:
+                season = max(k[0] for k in self.imdb_episode_ratings[show])
+            else:
+                season = list(parse_imdb_episode_list(link, season=-1))[-1][0]
+            tmp = [k for k, v in self.imdb_episode_ratings[show].items()
+                   if k[0] == season and v['airdate'] == airdate_]
+            if len(tmp) == 0:
+                self.get_imdb_episode_ratings(show, season=season)
+                print(fname, airdate_)
+                return show, link, -1, -1
+            episode = tmp[0][1]
+        if show not in self.imdb_episode_ratings:
+            self.get_imdb_episode_ratings(show, season=season)
+        elif (season, episode) not in self.imdb_episode_ratings[show]:
+            self.get_imdb_episode_ratings(show, season=season)
+        elif show not in dailies and (
+                self.imdb_episode_ratings.get(show)
+                                         .get((season, episode))
+                                         .get('rating') < 0):
+            self.get_imdb_episode_ratings(show, season=season)
+        return show, link, season, episode
+
+    def get_season_episode_from_name(self, fname, show):
+        if show in ('the_daily_show', 'the_nightly_show', 'at_midnight'):
+            tmp = self.get_season_episode_rating_from_name(fname)
+            show, link, season, episode = tmp
+            return season, episode
+        else:
+            return get_season_episode_from_name(fname, show)
+
     def add_entry(self, fname, position=-1):
         ''' add entry to queue '''
         if position < 0:
@@ -189,17 +227,7 @@ class MovieCollection(object):
                     % (curpos, position, fname))
                 print(position, fname)
         else:
-            ratings = self.get_imdb_rating(fname)
-            show, link = [ratings.get(x) for x in 'show', 'link']
-            season, episode = get_season_episode_from_name(fname, show)
-            if show not in self.imdb_episode_ratings:
-                self.get_imdb_episode_ratings(show, season=season)
-            elif (season, episode) not in self.imdb_episode_ratings[show]:
-                self.get_imdb_episode_ratings(show, season=season)
-            elif self.imdb_episode_ratings.get(show)\
-                                          .get((season, episode))\
-                                          .get('rating') < 0:
-                self.get_imdb_episode_ratings(show, season=season)
+            show, link, _, _ = self.get_season_episode_rating_from_name(fname)
             row_dict = {'idx': position, 'path': fname, 'show': show,
                         'link': link}
             self.current_queue.insert(position, row_dict)
@@ -245,17 +273,7 @@ class MovieCollection(object):
     def add_entry_to_collection(self, fname):
         if fname in self.movie_collection:
             return
-        ratings = self.get_imdb_rating(fname)
-        show, link = [ratings.get(x) for x in 'show', 'link']
-        season, episode = get_season_episode_from_name(fname, show)
-        if show not in self.imdb_episode_ratings:
-            self.get_imdb_episode_ratings(show, season=season)
-        elif (season, episode) not in self.imdb_episode_ratings[show]:
-            self.get_imdb_episode_ratings(show, season=season)
-        elif self.imdb_episode_ratings.get(show)\
-                                      .get((season, episode))\
-                                      .get('rating') < 0:
-            self.get_imdb_episode_ratings(show, season=season)
+        show, link, _, _ = self.get_season_episode_rating_from_name(fname)
         idx_ = list(self.con.execute(
             "select max(idx) from movie_collection"))[0][0]
         if idx_ is None:

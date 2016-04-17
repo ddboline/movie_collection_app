@@ -7,7 +7,6 @@ from collections import defaultdict
 
 from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.parse_imdb import parse_imdb_episode_list
-from movie_collection_app.util import get_season_episode_from_name
 
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
@@ -33,7 +32,7 @@ def find_new_episodes(search=(), do_update=False):
         if search and any(x not in show for x in search):
             continue
         fname = row['path']
-        season, episode = get_season_episode_from_name(fname, show)
+        season, episode = mq_.get_season_episode_from_name(fname, show)
         if season == -1 or episode == -1:
             continue
         max_s = max_season.get(show, -1)
@@ -96,7 +95,7 @@ def find_new_episodes_watchlist(search=(), do_update=False):
         if not search and not cond0:
             continue
         fname = row['path']
-        season, episode = get_season_episode_from_name(fname, show)
+        season, episode = mq_.get_season_episode_from_name(fname, show)
         if season == -1 or episode == -1:
             continue
         max_s = max_season.get(show, -1)
