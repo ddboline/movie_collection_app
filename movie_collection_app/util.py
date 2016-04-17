@@ -11,6 +11,7 @@ import glob
 import os
 import re
 import time
+import datetime
 from subprocess import call, Popen, PIPE
 
 HOMEDIR = os.getenv('HOME')
@@ -130,8 +131,32 @@ def get_season_episode_from_name(fname, show):
         return -1, -1
 
 
+def get_dailies_airdate(fname, show):
+    tmp = fname.split('/')[-1]
+    if show not in tmp:
+        return None
+    tmp = tmp.split(show)[1]
+    if '.' not in tmp:
+        return None
+    tmp = tmp.split('.')[0]
+    if '_' not in tmp:
+        return None
+    if len(tmp) < 2:
+        return None
+    tmp = tmp.strip('_')
+    try:
+        year = int(tmp[:4])
+        month = int(tmp[4:6])
+        day = int(tmp[6:8])
+        return datetime.date(year=year, month=month, day=day)
+    except Exception as exc:
+        print(exc, tmp)
+        return None
+
+
 def extract_show(fn_, full_path=True):
     type_ = ''
+    dailies = ('the_daily_show', 'the_nightly_show', 'at_midnight')
     if 'television' in fn_ or not full_path:
         if 'unwatched' not in fn_ and full_path:
             show = fn_.split('/')[-3]
@@ -140,6 +165,10 @@ def extract_show(fn_, full_path=True):
             show = fn_.split('/')[-1]
             show = re.sub('_s[0-9]+', ' ', show).split()[0]
             type_ = 'tv'
+            for show_ in dailies:
+                if show_ in show:
+                    show = show_
+                    break
     else:
         show = fn_.split('/')[-1].split('.')[0]
         type_ = 'movie'
