@@ -57,10 +57,11 @@ class MovieCollection(object):
         for idy, row in enumerate(self.current_queue):
             fname = row['path']
             show = row['show']
+            index = row['index']
             self.queue_dict[fname]['idx'] = idy
             self.con.execute(
                 "insert into current_queue (index, idx, path, show) values "
-                "(%d, %d, '%s', '%s')" % (idy, idy, fname, show))
+                "(%d, %d, '%s', '%s')" % (index, idy, fname, show))
 
     def fix_index(self):
         for idy, row in enumerate(self.current_queue):
@@ -227,13 +228,14 @@ class MovieCollection(object):
                 print(position, fname)
         else:
             show, link, _, _ = self.get_season_episode_rating_from_name(fname)
+            new_index = max(x['index'] for x in self.current_queue) + 1
             row_dict = {'idx': position, 'path': fname, 'show': show,
-                        'link': link}
+                        'link': link, 'index': new_index}
             self.current_queue.insert(position, row_dict)
             self.queue_dict[fname] = row_dict
             self.con.execute(
                 "insert into current_queue (index, idx, path, show) values "
-                "(%d, %d, '%s', '%s')" % (position, position, fname, show))
+                "(%d, %d, '%s', '%s')" % (new_index, position, fname, show))
             self.con.execute("update current_queue set idx = idx + 1 "
                              "where idx >= %d and path != '%s'"
                              % (position, fname))
