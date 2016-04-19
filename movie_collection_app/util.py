@@ -264,3 +264,30 @@ def sync_sabrent_with_nas(run_command=True):
                     if run_command:
                         os.system(cmd)
                     time.sleep(1)
+    naspath = '/media/dileptonnas/Documents/movies'
+    sabpath = '/media/sabrent2000/Documents/movies'
+    dirs = ('adult', 'foreign', 'horror', 'documentary', 'scifi', 'comedy',
+            'drama', 'action')
+    for d in dirs:
+        fpath = '%s/%s' % (sabpath, d)
+        if not os.path.exists(fpath):
+            continue
+        movies = [x.split('/')[-1] for x in glob.glob('%s/*.mp4' % fpath)]
+        for f in movies:
+            sabfile = '%s/%s/%s' % (sabpath, d, f)
+            nasfile = '%s/%s/%s' % (naspath, d, f)
+            if not os.path.exists('%s/%s' % (naspath, d)):
+                cmd = 'mkdir -p %s/%s' % (naspath, d)
+                print(cmd)
+                if run_command:
+                    os.system(cmd)
+            if not os.path.exists(nasfile):
+                cmd = 'cp %s %s' % (sabfile, nasfile)
+                print(cmd)
+                if run_command:
+                    os.system(cmd)
+                cmd = 'md5sum %s %s' % (sabfile, nasfile)
+                print(cmd)
+                if run_command:
+                    os.system(cmd)
+                time.sleep(1)
