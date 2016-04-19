@@ -158,6 +158,7 @@ def parse_imdb_argparse():
 
     name = []
     do_tv = False
+    do_update = False
     season = None
     if hasattr(args, 'command'):
         for arg in args.command:
@@ -165,6 +166,8 @@ def parse_imdb_argparse():
                 print(help_text)
             elif arg == 'tv':
                 do_tv = True
+            elif arg == 'update':
+                do_update = True
             elif 'season=' in arg:
                 tmp = arg.replace('season=', '')
                 try:
@@ -180,19 +183,26 @@ def parse_imdb_argparse():
     mc_ = MovieCollection()
 
     if do_tv:
-        title, imdb_link, rating = parse_imdb_mobile_tv(name)
         show_ = ''
-        for show, val in mc_.imdb_ratings.items():
-            if val['link'] == imdb_link:
-                show_ = show
-                break
+        if name.replace(' ', '_') in mc_.imdb_ratings:
+            show_ = name.replace(' ', '_')
+            title = mc_.imdb_ratings[show_]['title']
+            imdb_link = mc_.imdb_ratings[show_]['link']
+            rating = mc_.imdb_ratings[show_]['rating']
+        else:
+            title, imdb_link, rating = parse_imdb_mobile_tv(name)
+            for show, val in mc_.imdb_ratings.items():
+                if val['link'] == imdb_link:
+                    show_ = show
+                    break
         print(title, imdb_link, rating)
         if season == -1:
-            for item in parse_imdb_episode_list(imdb_link, season=season):
-                season_, episode, airdate, ep_rating, ep_title, ep_url = item
+            for item in parse_imdb_episode_list(imdb_link, season=-1):
+                season_, _, _, _, _, _ = item
                 print(title, season_)
         elif show_:
-            mc_.get_imdb_episode_ratings(show=show_, season=season)
+            if do_update:
+                mc_.get_imdb_episode_ratings(show=show_, season=season)
             mc_.read_imdb_episodes()
             for (season_, episode) in sorted(mc_.imdb_episode_ratings[show_]):
                 if season and season != season_:
