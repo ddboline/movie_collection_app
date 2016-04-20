@@ -319,3 +319,25 @@ def sync_sabrent_with_nas(run_command=True):
                 if run_command:
                     os.system(cmd)
                 time.sleep(1)
+
+
+def remove_leftover_avi(run_command=False):
+    naspath = '/media/dileptonnas/Documents/television'
+    sabpath = '/media/sabrent2000/Documents/movies/television'
+    dirs = [x.split('/')[-1] for x in glob.glob('%s/*' % sabpath)]
+    for d in dirs:
+        fpath = '%s/%s' % (sabpath, d)
+        if not os.path.exists(fpath):
+            continue
+        seasons = [x.split('/')[-1] for x in glob.glob('%s/*' % fpath)]
+        for season in seasons:
+            sabfiles = [x.split('/')[-1]
+                        for x in glob.glob('%s/%s/%s/*.mp4'
+                                           % (sabpath, d, season))]
+            for f in sabfiles:
+                nasfile = '%s/%s/%s/%s' % (naspath, d, season, f)
+                nasfile = nasfile.replace('.mp4', '.mkv')
+                if os.path.exists(nasfile):
+                    print(nasfile)
+                    if run_command:
+                        os.remove(nasfile)
