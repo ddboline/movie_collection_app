@@ -10,6 +10,36 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import glob
 import time
+from movie_collection_app.movie_collection import MovieCollection
+
+
+def sync_queue_with_nas(run_command=True):
+    mq_ = MovieCollection()
+    for row in mq_.current_queue:
+        fname = row['path']
+        if 'sabrent2000' not in fname:
+            continue
+        if '.mp4' not in fname:
+            continue
+        nasname = fname.replace('sabrent2000', 'dileptonnas')
+        nasname = nasname.replace('movies/television', 'television')
+        naspath = '/'.join(nasname.split('/')[:-1])
+        if not os.path.exists(naspath):
+            cmd = 'mkdir -p %s' % naspath
+            print(cmd)
+            if run_command:
+                os.system(cmd)
+        if 'sabrent2000' in fname and not os.path.exists(nasname):
+            cmd = 'cp -n %s %s' % (fname, nasname)
+            print(cmd)
+            if run_command:
+                os.system(cmd)
+            cmd = 'md5sum %s %s' % (fname, nasname)
+            print(cmd)
+            if run_command:
+                os.system(cmd)
+                time.sleep(1)
+    return
 
 
 def sync_sabrent_with_nas(run_command=True):
