@@ -145,8 +145,8 @@ def remove_leftover_avi(run_command=False):
                                            % (sabpath, d, season))]
             for f in sabfiles:
                 nasfile = '%s/%s/%s/%s' % (naspath, d, season, f)
-                nasfile = nasfile.replace('.mp4', '.mkv')
+                nasfile = nasfile.replace('.mp4', '.avi')
                 if os.path.exists(nasfile):
-                    print(nasfile)
+                    print('rm %s' % nasfile)
                     if run_command:
                         os.remove(nasfile)
