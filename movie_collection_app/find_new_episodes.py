@@ -16,7 +16,7 @@ watchlist = {'12_monkeys', 'adventure_time', 'american_crime_story', 'archer',
              'man_seeking_woman', 'the_good_wife', 'the_last_ship',
              'the_leftovers', 'rick_and_morty', 'vikings',
              'last_week_tonight_with_john_oliver', 'underground_2016',
-             'outlander', 'silicon_valley', 'better_call_saul'}
+             'outlander_2014', 'silicon_valley', 'better_call_saul'}
 
 
 def find_new_episodes(search=(), do_update=False):
@@ -47,7 +47,6 @@ def find_new_episodes(search=(), do_update=False):
     for show in sorted(current_shows):
         max_s = max_season[show]
         max_e = max_episode[show][max_s]
-#        print(show, max_s, max_e)
         imdb_link = mq_.imdb_ratings[show]['link']
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
