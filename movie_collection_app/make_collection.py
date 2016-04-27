@@ -16,11 +16,12 @@ from movie_collection_app.util import (walk_wrapper, read_time, print_h_m_s)
 file_formats = ('mp4', 'mkv', 'avi')
 list_of_commands = ('parse', 'list', 'time', 'mov')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-movie_dirs = ('/media/sabrent2000/Documents/movies',
-              '/media/sabrent2000/Documents/television',
-              '/media/dileptonnas/Documents/movies',
+movie_dirs = ('/media/dileptonnas/Documents/movies',
               '/media/dileptonnas/Documents/television',
-              '/media/sabrent2000/television/unwatched',
+              '/media/dileptonnas/television/unwatched',
+              #'/media/sabrent2000/television/unwatched',
+              #'/media/sabrent2000/Documents/movies',
+              #'/media/sabrent2000/Documents/television',
               '/media/western2000/Documents/movies',)
 
 
@@ -55,7 +56,7 @@ def make_collection():
     for fname in fnames:
         if fname in all_files:
             continue
-        if 'caviar2000' in fname:
+        if 'caviar2000' in fname or 'sabrent2000' in fname:
             continue
         print('file %s not on disk' % fname)
         mq_.rm_entry_from_collection(fname)
@@ -78,7 +79,7 @@ def search_collection(search_strs, do_time=False):
     mq_ = MovieCollection()
 
     for path in mq_.movie_collection:
-        if 'caviar2000' in path:
+        if 'caviar2000' in path or 'sabrent2000' in path:
             continue
         if any(x in path for x in search_strs):
             path_ = mq_.movie_collection[path]['path']

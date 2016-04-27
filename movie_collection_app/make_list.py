@@ -24,10 +24,12 @@ COMMANDS = ('dvd', 'tv', 'notv', 'list', 'time', 'col', 'mov', 'dsk', 'rand',
               #'/media/western2000/Documents/movies',
               #'/media/western2000/television/unwatched')
 
-MOVIE_DIRS = ('/media/sabrent2000/Documents/movies',
-              '/media/dileptonnas/Documents/movies',
+MOVIE_DIRS = ('/media/dileptonnas/Documents/movies',
               '/media/dileptonnas/Documents/television',
-              '/media/sabrent2000/television/unwatched',)
+              '/media/dileptonnas/television/unwatched',
+              #'/media/sabrent2000/Documents/movies',
+              #'/media/sabrent2000/television/unwatched',
+              )
 
 HOMEDIR = os.getenv('HOME')
 COLLECTION_DIR = '%s/Dropbox/movie_collection' % HOMEDIR
