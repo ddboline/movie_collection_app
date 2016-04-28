@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nosetests --with-coverage --cover-package=movie_collection_app ./tests/*.py movie_collection_app/*.py
+nosetests --with-coverage --cover-package=movie_collection_app movie_collection_app/*.py # tests/*.py
 
 # pyreverse garmin_app
 # for N in classes packages; do dot -Tps ${N}*.dot > ${N}.ps ; ps2pdf ${N}.ps ; done
