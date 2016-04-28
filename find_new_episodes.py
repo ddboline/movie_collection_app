@@ -5,4 +5,7 @@ from movie_collection_app.find_new_episodes import find_new_episodes_parse
 
 
 if __name__ == '__main__':
-    find_new_episodes_parse()
+    try:
+        find_new_episodes_parse()
+    except IOError:
+        exit(0)
