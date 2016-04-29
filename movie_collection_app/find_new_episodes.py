@@ -10,14 +10,12 @@ from movie_collection_app.parse_imdb import parse_imdb_episode_list
 
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-watchlist = {'12_monkeys', 'adventure_time', 'american_crime_story', 'archer',
-             'homeland', 'game_of_thrones', 'the_expanse', 'colony',
-             'star_wars_rebels', 'orphan_black', 'lost_girl',
-             'man_seeking_woman', 'the_good_wife', 'the_last_ship',
-             'the_leftovers', 'rick_and_morty', 'vikings',
+watchlist = {'12_monkeys', 'adventure_time', 'archer', 'homeland',
+             'game_of_thrones', 'orphan_black', 'lost_girl', 'the_good_wife',
+             'the_last_ship', 'the_leftovers', 'rick_and_morty', 'vikings',
              'last_week_tonight_with_john_oliver', 'underground_2016',
              'outlander_2014', 'silicon_valley', 'better_call_saul',
-             'the_last_panthers', 'the_night_manager'}
+             'the_last_panthers', 'the_night_manager', 'penny_dreadful'}
 
 
 def find_new_episodes(search=(), do_update=False):
