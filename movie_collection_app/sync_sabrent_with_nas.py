@@ -9,10 +9,14 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import os
 
+nasbase = '/media/dileptonnas/Documents'
+sabbase = '/media/sabrent2000/Documents'
+nasbase = sabbase
+
 
 def remove_leftover_avi(run_command=False):
-    naspaths = ('/media/dileptonnas/Documents/television',
-                '/media/dileptonnas/Documents/movies')
+    naspaths = ('%s/television' % nasbase,
+                '%s/movies' % nasbase)
     for naspath in naspaths:
         for root, dirs, files in os.walk(naspath):
             for fn_ in files:
