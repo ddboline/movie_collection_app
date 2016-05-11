@@ -148,16 +148,17 @@ class MovieCollection(object):
                 epurl_ = itdict['epurl']
                 rating_ = itdict['rating']
                 airdate_ = itdict['airdate']
-                itdict['eptitle'] = re.sub('[^A-Za-z0-9 ]', '',
-                                           itdict['eptitle'])
+                eptitle_ = re.sub('[^A-Za-z0-9 ]', '', itdict['eptitle'])
+                itdict['eptitle'] = eptitle_
                 tmp = self.imdb_episode_ratings.get(show, {})
                 if tmp and tmp.get((season_, episode_), {}):
-                    self.con.execute("UPDATE imdb_episodes SET "
-                                     "rating=%d, epurl='%s', airdate='%s' "
-                                     "WHERE show = '%s' and season = %d "
-                                     "and episode = %d" % (
-                                         rating_, epurl_, airdate_, show,
-                                         season_, episode_))
+                    self.con.execute(
+                        "UPDATE imdb_episodes SET "
+                        "rating=%d,epurl='%s',airdate='%s',eptitle='%s' "
+                        "WHERE show='%s' and season=%d "
+                        "and episode = %d" % (rating_, epurl_, airdate_,
+                                              eptitle_, show, season_,
+                                              episode_))
                 else:
                     keys, values = zip(*itdict.items())
                     keys = ', '.join('%s' % x for x in keys)
