@@ -16,7 +16,7 @@ watchlist = {'12_monkeys', 'adventure_time', 'archer', 'homeland',
              'last_week_tonight_with_john_oliver', 'underground_2016',
              'outlander_2014', 'silicon_valley', 'better_call_saul',
              'the_last_panthers', 'the_night_manager', 'penny_dreadful',
-             'fear_the_walking_dead'}
+             'fear_the_walking_dead', 'unreal'}
 
 
 def find_new_episodes(search=(), do_update=False):
