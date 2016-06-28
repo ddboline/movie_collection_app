@@ -11,11 +11,9 @@ from movie_collection_app.parse_imdb import parse_imdb_episode_list
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 watchlist = {'12_monkeys', 'adventure_time', 'archer', 'homeland',
-             'game_of_thrones', 'orphan_black', 'lost_girl', 'the_good_wife',
-             'the_last_ship', 'the_leftovers', 'rick_and_morty', 'vikings',
-             'last_week_tonight_with_john_oliver', 'underground_2016',
-             'outlander_2014', 'silicon_valley', 'better_call_saul',
-             'the_last_panthers', 'the_night_manager', 'penny_dreadful',
+             'game_of_thrones', 'lost_girl', 'mr_robot', 'rick_and_morty',
+             'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
+             'silicon_valley', 'the_last_panthers', 'the_night_manager',
              'fear_the_walking_dead', 'unreal'}
 
 
