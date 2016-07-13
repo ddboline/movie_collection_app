@@ -140,7 +140,7 @@ class MovieCollection(object):
                               'episode': epi, 'epurl': eurl, 'airdate': ad_,
                               'rating': rt_, 'eptitle': eti}
                     epi_rating_items.append(itdict)
-#                    print(itdict)
+                    #print(itdict)
                     idx += 1
             for itdict in epi_rating_items:
                 season_ = itdict['season']
@@ -181,7 +181,7 @@ class MovieCollection(object):
             tmp = [k for k, v in self.imdb_episode_ratings[show].items()
                    if k[0] == season and v['airdate'] == airdate_]
             if len(tmp) == 0:
-                print(fname, airdate_)
+                #print(fname, airdate_)
                 return show, link, -1, -1
             episode = tmp[0][1]
         if show not in self.imdb_episode_ratings:
