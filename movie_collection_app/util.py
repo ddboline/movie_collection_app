@@ -7,10 +7,8 @@ Created on Fri Mar  4 20:44:24 2016
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import glob
 import os
 import re
-import time
 import datetime
 from subprocess import call, Popen, PIPE
 
@@ -18,6 +16,9 @@ HOMEDIR = os.getenv('HOME')
 HOSTNAME = os.uname()[1]
 REMOTEHOST = 'ddbolineathome.mooo.com'
 POSTGRESTRING = 'postgresql://ddboline:BQGIvkKFZPejrKvX@localhost'
+
+dailies = ('the_late_show_with_stephen_colbert', 'the_daily_show',
+           'the_nightly_show', 'at_midnight')
 
 
 def play_file(fname, yad=False):
@@ -156,7 +157,6 @@ def get_dailies_airdate(fname, show):
 
 def extract_show(fn_, full_path=True):
     type_ = ''
-    dailies = ('the_daily_show', 'the_nightly_show', 'at_midnight')
     if 'television' in fn_ or not full_path:
         if 'unwatched' not in fn_ and full_path:
             show = fn_.split('/')[-3]
