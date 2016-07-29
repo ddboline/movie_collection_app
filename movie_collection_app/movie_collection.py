@@ -19,7 +19,7 @@ from movie_collection_app.parse_imdb import (parse_imdb_mobile_tv, parse_imdb,
 from movie_collection_app.util import (
     POSTGRESTRING, HOSTNAME, extract_show, get_season_episode_from_name,
     remove_remote_file, has_been_downloaded, get_remote_file, read_time,
-    print_h_m_s, play_file, get_dailies_airdate)
+    print_h_m_s, play_file, get_dailies_airdate, dailies)
 
 
 class MovieCollection(object):
@@ -167,7 +167,6 @@ class MovieCollection(object):
                                      "(%s) VALUES ('%s')" % (keys, values))
 
     def get_season_episode_rating_from_name(self, fname):
-        dailies = ('the_daily_show', 'the_nightly_show', 'at_midnight')
         ratings = self.get_imdb_rating(fname)
         show, link = [ratings.get(x) for x in 'show', 'link']
         season, episode = get_season_episode_from_name(fname, show)
@@ -196,7 +195,7 @@ class MovieCollection(object):
         return show, link, season, episode
 
     def get_season_episode_from_name(self, fname, show):
-        if show in ('the_daily_show', 'the_nightly_show', 'at_midnight'):
+        if show in dailies:
             tmp = self.get_season_episode_rating_from_name(fname)
             show, link, season, episode = tmp
             return season, episode
