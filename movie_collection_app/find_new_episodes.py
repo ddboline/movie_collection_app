@@ -48,6 +48,8 @@ def find_new_episodes(search=(), do_update=False):
         imdb_link = mq_.imdb_ratings[show]['link']
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
+        if imdb_link == '':
+            continue
         if do_update:
             for item in parse_imdb_episode_list(imdb_link, season=-1):
                 season = item[0]
