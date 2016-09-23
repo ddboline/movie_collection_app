@@ -16,7 +16,9 @@ def t_request(endpoint):
     timeout = 1
     while True:
         try:
-            return requests.get(endpoint)
+            resp = requests.get(endpoint)
+            resp.raise_for_status()
+            return resp
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.HTTPError) as exc:
             print('timeout %s, %s' % (timeout, exc))
