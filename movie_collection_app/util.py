@@ -5,8 +5,7 @@ Created on Fri Mar  4 20:44:24 2016
 
 @author: ddboline
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 import re
 import datetime
@@ -17,8 +16,8 @@ HOSTNAME = os.uname()[1]
 REMOTEHOST = 'ddbolineathome.mooo.com'
 POSTGRESTRING = 'postgresql://ddboline:BQGIvkKFZPejrKvX@localhost'
 
-dailies = ('the_late_show_with_stephen_colbert', 'the_daily_show',
-           'the_nightly_show', 'at_midnight')
+dailies = ('the_late_show_with_stephen_colbert', 'the_daily_show', 'the_nightly_show',
+           'at_midnight')
 
 
 def play_file(fname, yad=False):
@@ -48,7 +47,7 @@ def get_length_of_mpg(fname='%s/netflix/mpg/test_roku_0.mpg' % HOMEDIR):
             try:
                 nhour = int(items[0])
                 nmin = int(items[1])
-                nsecs = int(float(items[2])) + nmin*60 + nhour*60*60
+                nsecs = int(float(items[2])) + nmin * 60 + nhour * 60 * 60
             except ValueError:
                 nsecs = -1
     return nsecs
@@ -77,8 +76,7 @@ def get_remote_file(fname):
     fn_ = fname.split('/')[-1]
     downloaded_file = '%s/Downloads/%s' % (HOMEDIR, fn_)
     if not os.path.isfile(downloaded_file):
-        _command = 'scp ddboline@%s:%s %s' % (REMOTEHOST, fname,
-                                              downloaded_file)
+        _command = 'scp ddboline@%s:%s %s' % (REMOTEHOST, fname, downloaded_file)
         call(_command, shell=True)
     return downloaded_file
 
@@ -177,11 +175,11 @@ def extract_show(fn_, full_path=True):
 
 class PopenWrapperClass(object):
     """ context wrapper around subprocess.Popen """
+
     def __init__(self, command):
         """ init fn """
         self.command = command
-        self.pop_ = Popen(self.command, shell=True, stdout=PIPE,
-                          close_fds=True)
+        self.pop_ = Popen(self.command, shell=True, stdout=PIPE, close_fds=True)
 
     def __iter__(self):
         return self.pop_.stdout
@@ -201,8 +199,7 @@ class PopenWrapperClass(object):
         return True
 
 
-def run_command(command, do_popen=False, turn_on_commands=True,
-                single_line=False):
+def run_command(command, do_popen=False, turn_on_commands=True, single_line=False):
     ''' wrapper around os.system '''
     if not turn_on_commands:
         print(command)

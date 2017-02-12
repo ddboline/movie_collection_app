@@ -1,12 +1,14 @@
 #!/usr/bin/python
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import argparse
 import requests
 import time
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
-from urllib import urlencode
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 list_of_commands = ('tv', 'season=<>')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
@@ -19,8 +21,7 @@ def t_request(endpoint):
             resp = requests.get(endpoint)
             resp.raise_for_status()
             return resp
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.HTTPError) as exc:
+        except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as exc:
             print('timeout %s, %s' % (timeout, exc))
             time.sleep(timeout)
             timeout *= 2
@@ -29,8 +30,7 @@ def t_request(endpoint):
 
 
 def parse_imdb(title='the bachelor'):
-    resp = t_request('http://www.imdb.com/find?%s' % urlencode({'s': 'all',
-                                                                'q': title}))
+    resp = t_request('http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title}))
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -50,8 +50,7 @@ def parse_imdb_rating(title='tt0313038'):
     resp_ = t_request('http://www.imdb.com/title/%s' % title)
     soup_ = BeautifulSoup(resp_.text, 'html.parser')
     for span in soup_.find_all('span'):
-        if 'itemprop' in span.attrs and span.attrs.get(
-                'itemprop', None) == 'ratingValue':
+        if 'itemprop' in span.attrs and span.attrs.get('itemprop', None) == 'ratingValue':
             return float(span.text)
     return -1
 
@@ -147,8 +146,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                                 print('epi_url', epi_url)
                                 epi_url = ''
                     if season_ >= 0 and episode >= 0 and airdate:
-                        yield (season_, episode, airdate, rating, epi_title,
-                               epi_url)
+                        yield (season_, episode, airdate, rating, epi_title, epi_url)
 
 
 def parse_imdb_argparse():

@@ -5,8 +5,7 @@ Created on Sat Mar  5 10:03:43 2016
 
 @author: ddboline
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 from traceback import format_exc
 from flask import Flask, jsonify
 from socket import gethostbyname
@@ -34,6 +33,7 @@ class Error(Exception):
 
 
 class BadInputs(Error):
+
     def __init__(self, message, payload=None):
         Error.__init__(self, message, 400, payload)
 
@@ -45,6 +45,7 @@ def handle_bad_inputs(error):
 
 
 class Internal(Error):
+
     def __init__(self, message, payload=None):
         Error.__init__(self, message, 500, payload)
 
@@ -72,10 +73,8 @@ def _return_tvshows():
         else:
             continue
         output_str.append('<tr>')
-        output_str.append('<td><a href=\"/list/%s\">%s</a></td>'
-                          % (show, show))
-        output_str.append('<td><a href=\"http://www.imdb.com/title/'
-                          '%s\">imdb</a></td>' % url)
+        output_str.append('<td><a href=\"/list/%s\">%s</a></td>' % (show, show))
+        output_str.append('<td><a href=\"http://www.imdb.com/title/' '%s\">imdb</a></td>' % url)
         output_str.append('</tr>')
     output_str.append('</table>')
     output_str.append('</H3></center>')
@@ -92,9 +91,11 @@ def return_tvshows():
 
 def _return_tvshow(show):
     ipaddr = gethostbyname('dilepton-tower.fios-router.home')
-    output_str = ["""<H3 align="center">
+    output_str = [
+        """<H3 align="center">
         <button name="remcomout" id="remcomoutput"> &nbsp; </button>
-        </H3>"""]
+        </H3>"""
+    ]
     output_str.append('<center><H3><table border="0">')
     output = check_output(['/home/ddboline/bin/make_queue', 'web', show])
     for line in output.split('\n'):
@@ -111,11 +112,9 @@ def _return_tvshow(show):
         show_ = show_.split('/')[-1]
         output_str.append('<tr>')
         output_str.append('<td><a href=\"http://'
-                          '%s/videos/partial/%s\">%s</a></td>'
-                          % (ipaddr, show_, show_))
+                          '%s/videos/partial/%s\">%s</a></td>' % (ipaddr, show_, show_))
         if url:
-            output_str.append('<td><a href=\"http://www.imdb.com/title/'
-                              '%s\">imdb</a></td>' % url)
+            output_str.append('<td><a href=\"http://www.imdb.com/title/' '%s\">imdb</a></td>' % url)
         output_str.append("""
             <td>
             <button type="submit" id="delete%s" onclick="delete_show('%s');">

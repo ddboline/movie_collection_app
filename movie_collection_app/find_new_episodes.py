@@ -1,6 +1,5 @@
 #!/usr/bin/python
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import argparse
 import datetime
 from collections import defaultdict
@@ -10,11 +9,11 @@ from movie_collection_app.parse_imdb import parse_imdb_episode_list
 
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-watchlist = {'12_monkeys', 'adventure_time', 'archer', 'homeland',
-             'game_of_thrones', 'lost_girl', 'mr_robot', 'rick_and_morty',
-             'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
-             'silicon_valley', 'the_last_panthers', 'the_night_manager',
-             'fear_the_walking_dead', 'unreal'}
+watchlist = {
+    '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
+    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
+    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'
+}
 
 
 def find_new_episodes(search=(), do_update=False):
@@ -70,8 +69,7 @@ def find_new_episodes(search=(), do_update=False):
             eprating = row['rating']
             airdate = row['airdate']
             output[(airdate, show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (
-                show, title, eptitle, season, episode, eprating, rating,
-                airdate)
+                show, title, eptitle, season, episode, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)
@@ -118,14 +116,15 @@ def find_new_episodes_watchlist(search=(), do_update=False):
                 if season < max_s:
                     continue
                 mq_.get_imdb_episode_ratings(show, season)
-        for season, episode in sorted(mq_.imdb_episode_ratings[show],
-                                      key=lambda x: x[0]*100+x[1]):
+        for season, episode in sorted(
+                mq_.imdb_episode_ratings[show], key=lambda x: x[0] * 100 + x[1]):
             row = mq_.imdb_episode_ratings[show][(season, episode)]
             if season < max_s:
                 continue
             if season in max_episode[show] \
                     and episode <= max_episode[show][season]:
                 continue
+
 #            if row['airdate'] > datetime.date.today():
 #                continue
             if (season, episode) in current_episodes:
@@ -134,8 +133,7 @@ def find_new_episodes_watchlist(search=(), do_update=False):
             eprating = row['rating']
             airdate = row['airdate']
             output[(airdate, show)] = '%s %s %d %d %s %0.2f/%0.2f %s' % (
-                show, title, season, episode, eptitle, eprating, rating,
-                airdate)
+                show, title, season, episode, eptitle, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)

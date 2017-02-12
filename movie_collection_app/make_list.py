@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """ manage collection """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import os
 import glob
@@ -14,31 +13,33 @@ try:
 except ImportError:
     from .util import run_command
 
-COMMANDS = ('dvd', 'tv', 'notv', 'list', 'time', 'col', 'mov', 'dsk', 'rand',
-            'uniq_tv', 'uniq_notv')
+COMMANDS = ('dvd', 'tv', 'notv', 'list', 'time', 'col', 'mov', 'dsk', 'rand', 'uniq_tv',
+            'uniq_notv')
 
-#MOVIE_DIRS = ('/media/sabrent2000/Documents/movies',
-              #'/media/caviar2000/Documents/movies',
-              #'/media/nexstarext4/Documents/movies',
-              #'/media/sabrent2000/television/unwatched',
-              #'/media/western2000/Documents/movies',
-              #'/media/western2000/television/unwatched')
-
-MOVIE_DIRS = ('/media/dileptonnas/Documents/movies',
-              '/media/dileptonnas/Documents/television',
-              '/media/dileptonnas/television/unwatched',
-              #'/media/sabrent2000/Documents/movies',
-              #'/media/sabrent2000/television/unwatched',
-              )
+MOVIE_DIRS = (
+    '/media/dileptonnas/Documents/movies', '/media/dileptonnas/Documents/television',
+    '/media/dileptonnas/television/unwatched',
+    # '/media/sabrent2000/Documents/movies',
+    # '/media/sabrent2000/television/unwatched',
+)
 
 HOMEDIR = os.getenv('HOME')
 COLLECTION_DIR = '%s/Dropbox/movie_collection' % HOMEDIR
 
 
-def make_list(tmpfile, do_dvd=False, do_collection=False, do_television=False,
-              no_television=False, do_uniq=False, do_string=False,
-              do_random=False, get_time=False, do_movies=False, do_disk=False,
-              do_here=False, tv_string=None):
+def make_list(tmpfile,
+              do_dvd=False,
+              do_collection=False,
+              do_television=False,
+              no_television=False,
+              do_uniq=False,
+              do_string=False,
+              do_random=False,
+              get_time=False,
+              do_movies=False,
+              do_disk=False,
+              do_here=False,
+              tv_string=None):
     """
         main function, handles input from stdin handled in main body of module
         options:
@@ -66,11 +67,9 @@ def make_list(tmpfile, do_dvd=False, do_collection=False, do_television=False,
 
     dir_ = ' '.join(MOVIE_DIRS)
 
-    current_collection = sorted(glob.glob('%s/movie_collection_on_dvd_*.txt'
-                                          % COLLECTION_DIR))[-1]
+    current_collection = sorted(glob.glob('%s/movie_collection_on_dvd_*.txt' % COLLECTION_DIR))[-1]
 
-    new_collection = '%s/movie_collection_on_dvd_%s.txt' % (COLLECTION_DIR,
-                                                            today)
+    new_collection = '%s/movie_collection_on_dvd_%s.txt' % (COLLECTION_DIR, today)
 
     if do_movies:
         if not do_here:
@@ -131,26 +130,23 @@ def make_list(tmpfile, do_dvd=False, do_collection=False, do_television=False,
                       '-iname \'*%s*.mkv\' ' % ent.replace('.mkv', '') + \
                       '2> /dev/null'
             if not get_time:
-                print('\n'.join(l.strip()
-                      for l in run_command(command, do_popen=True)))
+                print('\n'.join(l.strip() for l in run_command(command, do_popen=True)))
             else:
                 for line in run_command(command, do_popen=True):
                     cur = line.split()[0]
-                    _cmd = run_command('aviindex -i '
-                                       '%s -o /dev/null 2> /dev/null' % cur,
-                                       do_popen=True)
+                    _cmd = run_command(
+                        'aviindex -i '
+                        '%s -o /dev/null 2> /dev/null' % cur, do_popen=True)
                     timeval = 0
                     for line in _cmd:
                         _line = line.split()
                         if _line[1] == 'V:':
-                            nsecs = int(float(_line[5][7:-1])/float(_line[2]))
+                            nsecs = int(float(_line[5][7:-1]) / float(_line[2]))
                             nmin = int(nsecs / 60.)
                             nhour = int(nmin / 60.)
-                            timeval = '%02i:%02i:%02i' % (nhour, nmin % 60,
-                                                          nsecs % 60)
+                            timeval = '%02i:%02i:%02i' % (nhour, nmin % 60, nsecs % 60)
                     if timeval == 0:
-                        _cmd = run_command('avconv -i %s 2>&1' % cur,
-                                           do_popen=True)
+                        _cmd = run_command('avconv -i %s 2>&1' % cur, do_popen=True)
                         for line in _cmd:
                             _line = line.split()
                             if _line[0] == 'Duration:':
@@ -158,8 +154,7 @@ def make_list(tmpfile, do_dvd=False, do_collection=False, do_television=False,
                                 nhour = int(items[0])
                                 nmin = int(items[1])
                                 nsecs = int(float(items[2]))
-                                timeval = '%02i:%02i:%02i' % (nhour, nmin,
-                                                              nsecs)
+                                timeval = '%02i:%02i:%02i' % (nhour, nmin, nsecs)
                     print('%s %s' % (timeval, cur))
         return 0
 
@@ -223,10 +218,10 @@ def make_list(tmpfile, do_dvd=False, do_collection=False, do_television=False,
             fname = _name[2].split('/')[-1]
             if do_uniq and disk_not_collection_count[fname] > 1:
                 continue
-            size = int(run_command('du -s %s' % _name[2],
-                                   do_popen=True, single_line=True).split()[0])
+            size = int(
+                run_command('du -s %s' % _name[2], do_popen=True, single_line=True).split()[0])
             total_size += size
-            print('%iM %s' % (size/1024, _name[2]))
+            print('%iM %s' % (size / 1024, _name[2]))
 
     print('%iG' % (total_size / 1024 / 1024))
 
@@ -284,8 +279,7 @@ def make_list_main():
                 if os.sys.argv[2] == 'here':
                     do_movies_ = True
                     do_here_ = True
-                    tv_string_ = sorted(glob.glob('*.avi')
-                                        + glob.glob('*.mp4'))
+                    tv_string_ = sorted(glob.glob('*.avi') + glob.glob('*.mp4'))
                 else:
                     tv_string_ = os.sys.argv[2:]
                     if isinstance(tv_string_, str)\
@@ -314,8 +308,17 @@ def make_list_main():
                 do_here_ = True
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        make_list(tmpfile, do_dvd=do_dvd_, do_collection=do_collection_,
-                  do_television=do_television_, no_television=no_television_,
-                  do_uniq=do_uniq_, do_string=do_string_, do_random=do_random_,
-                  get_time=get_time_, do_movies=do_movies_, do_disk=do_disk_,
-                  do_here=do_here_, tv_string=tv_string_)
+        make_list(
+            tmpfile,
+            do_dvd=do_dvd_,
+            do_collection=do_collection_,
+            do_television=do_television_,
+            no_television=no_television_,
+            do_uniq=do_uniq_,
+            do_string=do_string_,
+            do_random=do_random_,
+            get_time=get_time_,
+            do_movies=do_movies_,
+            do_disk=do_disk_,
+            do_here=do_here_,
+            tv_string=tv_string_)

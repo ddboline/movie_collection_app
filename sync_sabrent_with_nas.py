@@ -1,11 +1,8 @@
 #!/usr/bin/python
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 
-#from movie_collection_app.sync_sabrent_with_nas import sync_sabrent_with_nas
 from movie_collection_app.sync_sabrent_with_nas import remove_leftover_avi
-
 
 if __name__ == '__main__':
     dry_run = False

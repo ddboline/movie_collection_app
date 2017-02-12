@@ -5,8 +5,7 @@ Created on Fri Mar  4 20:44:24 2016
 
 @author: ddboline
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 
 nasbase = '/media/dileptonnas/Documents'
@@ -15,8 +14,7 @@ nasbase = sabbase
 
 
 def remove_leftover_avi(run_command=False):
-    naspaths = ('%s/television' % nasbase,
-                '%s/movies' % nasbase)
+    naspaths = ('%s/television' % nasbase, '%s/movies' % nasbase)
     for naspath in naspaths:
         for root, dirs, files in os.walk(naspath):
             for fn_ in files:

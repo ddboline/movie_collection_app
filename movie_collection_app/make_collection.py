@@ -5,8 +5,7 @@ Created on Fri Mar  4 23:56:17 2016
 
 @author: ddboline
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 import argparse
 
@@ -16,13 +15,14 @@ from movie_collection_app.util import (walk_wrapper, read_time, print_h_m_s)
 file_formats = ('mp4', 'mkv', 'avi')
 list_of_commands = ('parse', 'list', 'time', 'mov')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-movie_dirs = ('/media/dileptonnas/Documents/movies',
-              '/media/dileptonnas/Documents/television',
-              '/media/dileptonnas/television/unwatched',
-              #'/media/sabrent2000/television/unwatched',
-              #'/media/sabrent2000/Documents/movies',
-              #'/media/sabrent2000/Documents/television',
-              '/media/western2000/Documents/movies',)
+movie_dirs = (
+    '/media/dileptonnas/Documents/movies',
+    '/media/dileptonnas/Documents/television',
+    '/media/dileptonnas/television/unwatched',
+    # '/media/sabrent2000/television/unwatched',
+    # '/media/sabrent2000/Documents/movies',
+    # '/media/sabrent2000/Documents/television',
+    '/media/western2000/Documents/movies', )
 
 
 def make_collection():
@@ -66,9 +66,9 @@ def make_collection():
             continue
         rating_obj = mq_.imdb_ratings.get(show, None)
         if rating_obj:
-            print('show %s not on disk: %s %s' % (
-                show, mq_.imdb_ratings[show]['rating'],
-                mq_.imdb_ratings[show]['title']))
+            print('show %s not on disk: %s %s' % (show, mq_.imdb_ratings[show]['rating'],
+                                                  mq_.imdb_ratings[show]['title']))
+
 #            mq_.rm_entry_from_ratings(show)
 
     print(len(mq_.imdb_ratings), len(mq_.imdb_episode_ratings))
@@ -100,9 +100,8 @@ def search_collection(search_strs, do_time=False):
                                                     .get((season, episode),
                                                          imdb_)
                     if 'eptitle' in imdb_:
-                        imdb_str = '%s/%s s%02d ep%02d %s %s' % (
-                            imdb_['rating'], rating_, season, episode, title_,
-                            imdb_['eptitle'])
+                        imdb_str = '%s/%s s%02d ep%02d %s %s' % (imdb_['rating'], rating_, season,
+                                                                 episode, title_, imdb_['eptitle'])
             if do_time:
                 time_ = read_time(path_)
                 if time_ > 0:
