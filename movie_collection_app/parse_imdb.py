@@ -38,7 +38,7 @@ def parse_imdb(title='the bachelor'):
         for td in tr.find_all('td'):
             if hasattr(td, 'attrs') and 'class' in td.attrs \
                     and 'result_text' in td.attrs['class']:
-                title_ = td.text.strip().encode(errors='ignore')
+                title_ = td.text.strip()
                 for a in td.find_all('a'):
                     if hasattr(a, 'attrs'):
                         link = a.attrs['href'].split('/')[2]
@@ -67,7 +67,7 @@ def parse_imdb_mobile_tv(title='the bachelor'):
     for div in soup.find_all('div'):
         if 'class' in div.attrs and 'title' in div.attrs['class'] \
                 and 'TV series' in div.text:
-            title_ = div.text.strip().encode(errors='ignore')
+            title_ = div.text.strip()
             for a in div.find_all('a'):
                 if hasattr(a, 'attrs'):
                     link = a.attrs['href'].split('/')[2]
