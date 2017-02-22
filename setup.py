@@ -22,7 +22,7 @@ console_scripts = ['%s = %s' % (x[0], x[1]) for x in console_scripts]
 
 setup(
     name='movie_collection_app',
-    version='0.0.1.6',
+    version='0.0.1.7',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',
