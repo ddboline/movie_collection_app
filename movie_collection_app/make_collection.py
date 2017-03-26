@@ -19,10 +19,15 @@ movie_dirs = (
     '/media/dileptonnas/Documents/movies',
     '/media/dileptonnas/Documents/television',
     '/media/dileptonnas/television/unwatched',
-    # '/media/sabrent2000/television/unwatched',
-    # '/media/sabrent2000/Documents/movies',
-    # '/media/sabrent2000/Documents/television',
-    '/media/western2000/Documents/movies', )
+    '/media/sabrent2000/television/unwatched',
+    '/media/sabrent2000/Documents/movies',
+    '/media/sabrent2000/Documents/television',
+    '/media/western2000/television/unwatched',
+    '/media/western2000/Documents/movies',
+    '/media/western2000/Documents/television',
+    '/media/seagate4000/television/unwatched',
+    '/media/seagate4000/Documents/movies',
+    '/media/seagate4000/Documents/television')
 
 
 def make_collection():

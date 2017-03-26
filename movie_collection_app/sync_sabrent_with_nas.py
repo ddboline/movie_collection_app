@@ -8,9 +8,8 @@ Created on Fri Mar  4 20:44:24 2016
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 
-nasbase = '/media/dileptonnas/Documents'
-sabbase = '/media/sabrent2000/Documents'
-nasbase = sabbase
+# nasbase = '/media/dileptonnas/Documents'
+nasbase = '/media/sabrent2000/Documents'
 
 
 def remove_leftover_avi(run_command=False):
