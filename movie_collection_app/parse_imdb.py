@@ -29,6 +29,183 @@ def t_request(endpoint):
                 raise
 
 
+def get_available_dates_channels():
+    resp = t_request('http://www.imdb.com/tvgrid')
+    if resp.status_code != 200:
+        raise Exception('bad status %s' % resp.status_code)
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    for s in soup.find_all('select'):
+        if hasattr(s, 'attrs') and 'name' in s.attrs and s.attrs['name'] == 'start_date':
+            available_dates = [o.attrs['value'] for o in s.find_all('option')]
+            available_dates = map(lambda x: parse(x).date(), available_dates)
+        if hasattr(s, 'attrs') and 'name' in s.attrs and s.attrs['name'] == 'channel':
+            available_channels = [
+                o.attrs['value'].strip('#') for o in s.find_all('option')
+                if '#' in o.attrs['value']]
+    return available_dates, available_channels
+
+
+def get_time_program_list(date=datetime.date.today(), channel='AMC'):
+    resp = t_request('http://www.imdb.com/tvgrid/%s/%s' % (str(date), channel))
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    for table in soup.find_all('table'):
+        if 'class' not in table.attrs:
+            for tr_idx, tr in enumerate(table.find_all('tr')):
+                start_time, start_time_url, title, desc, imdb_title, imdb_url, ep_title, ep_url = 8 * [
+                    '']
+                for td_idx, td in enumerate(tr.find_all('td')):
+                    if td_idx == 0:
+                        start_time = td.text
+                        try:
+                            start_time_url = [
+                                int(a.attrs['href'].split('/')[3]) for a in td.find_all('a')][0]
+                        except ValueError:
+                            start_time_url = sum(
+                                int(x) * 100**i
+                                for i, x in enumerate(td.text.split()[0].split(':')[::-1]))
+                    else:
+                        title = list(td.find_all('b'))[0].text
+                        for a in td.find_all('a'):
+                            if not imdb_title:
+                                imdb_title = a.text
+                                imdb_url = a.attrs['href']
+                            elif not ep_title:
+                                ep_title = a.text
+                                ep_url = a.attrs['href']
+                        desc = td.text.replace(title, '').strip()
+                        if ep_title:
+                            desc = desc.replace(ep_title, '').strip()
+                        yield {
+                            'start_int': start_time_url,
+                            'start_str': start_time,
+                            'title': title,
+                            'desc': desc,
+                            'imdb_title': imdb_title,
+                            'imdb_url': imdb_url,
+                            'ep_title': ep_title,
+                            'ep_url': ep_url}
+
+
+def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=None):
+    last_date = (
+        datetime.datetime.combine(date, datetime.time()) + datetime.timedelta(days=-1)).date()
+    resp = t_request('http://www.imdb.com/tvgrid/%s/%s' % (str(date), start_time))
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    shows = {}
+    for div in soup.find_all('div'):
+        if 'tv_channel' in div.attrs.get('class', {}):
+            channel_name = [
+                a.attrs['name'] for x in div.find_all('div')
+                if 'tv_callsign' in x.attrs.get('class', {}) for a in x.find_all('a')][0]
+            if channels is not None and channel_name not in channels:
+                continue
+
+            for li in div.find_all('li'):
+                imdb_title, imdb_url = 2 * ['']
+                id_ = li.attrs['id'].replace('_show', '_info')
+                start_time_ = li.attrs['id'].replace(channel_name, '').replace('_show', '')
+                ampm = start_time_[-2:]
+                hr = int(start_time_[:-2]) // 100
+                mn = int(start_time_[:-2]) % 100
+                if start_time == '0000' and ampm == 'PM':
+                    start_time_ = parse('%s %02d:%02d %s EST' % (last_date, hr, mn, ampm))
+                else:
+                    start_time_ = parse('%s %02d:%02d %s EST' % (date, hr, mn, ampm))
+                for d in li.find_all('div'):
+                    if 'tv_title' not in d.attrs.get('class', {}):
+                        continue
+                    imdb_title = d.text.strip()
+                    for a in d.find_all('a'):
+                        imdb_title = a.attrs['title'].strip()
+                        imdb_url = a.attrs['href']
+                shows[id_] = {
+                    'channel': channel_name,
+                    'start_time': start_time_,
+                    'title': imdb_title,
+                    'imdb_title': imdb_title,
+                    'imdb_url': imdb_url,
+                    'ep_title': '',
+                    'ep_url': ''}
+        elif 'tv_phantom' in div.attrs.get('class', {}):
+            id_ = div.table.attrs.get('id', '')
+            if id_ in shows:
+                for a in div.find_all('a'):
+                    url = a.attrs['href']
+                    if shows[id_]['imdb_url'] != url:
+                        shows[id_]['ep_url'] = url
+                        shows[id_]['ep_title'] = a.text.strip()
+    return shows.values()
+
+
+def parse_imdb_tv_listings():
+    available_dates, available_channels = get_available_dates_channels()
+
+    dataframes = []
+    for channel in available_channels:
+        tmp_dfs = []
+        for date in available_dates:
+            print('channel %s date %s' % (channel, date))
+            last_date = (datetime.datetime.combine(date, datetime.time()) + datetime.timedelta(
+                days=-1)).date()
+            time_prog_list = list(get_time_program_list(date, channel=channel))
+            df = pd.DataFrame(time_prog_list)
+            df['start_time'] = df.start_str.apply(lambda x: parse('%s %s EST' % (date, x)))
+            if df.shape[0] > 1:
+                if df.start_int[0] > df.start_int[1]:
+                    df.ix[0, 'start_time'] = parse('%s %s EST' % (last_date, df.start_str[0]))
+                df['end_time'] = df.loc[1:, 'start_time'].reset_index(drop=True)
+            else:
+                df['end_time'] = pd.NaT
+            df['channel'] = channel
+            tmp_dfs.append(df)
+        df = pd.concat(tmp_dfs)
+        df = df.sort_values(by=['start_time']).reset_index(drop=True)
+        idx = df[df.end_time.isnull()].index
+        nidx = idx + 1
+        df.loc[df.index.isin(idx[:-1]), 'end_time'] = df[df.index.isin(nidx)].start_time.values
+        dataframes.append(df)
+    df = pd.concat(dataframes)
+    df = df[[
+        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
+        'ep_url']]
+
+    cc = df.channel.value_counts()
+
+    bad_channels = cc[cc == len(available_dates)].index
+    df = df[~df.channel.isin(bad_channels)]
+    df2 = get_bad_channels(available_dates, bad_channels)
+    df = pd.concat([df, df2]).reset_index(drop=True)
+    return df
+
+
+def get_bad_channels(available_dates, bad_channels):
+    dataframes = []
+    for date in available_dates:
+        for start_time in ['%04d' % (x * 100) for x in range(0, 24, 3)]:
+            print(date, start_time)
+            time_prog_list = get_time_from_grid(
+                date=date, start_time=start_time, channels=bad_channels)
+            df_ = pd.DataFrame(time_prog_list)
+            dataframes.append(df_)
+    df_ = pd.concat(dataframes)
+    df_ = df_[[
+        'channel', 'start_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
+        'ep_url']].sort_values(by=['channel', 'start_time']).reset_index(drop=True)
+
+    dataframes = []
+    for channel in df_.channel.unique():
+        tmp_df = df_[df_.channel == channel].reset_index(drop=True)
+        if tmp_df.shape[0] > 1:
+            tmp_df['end_time'] = tmp_df.loc[1:, 'start_time'].reset_index(drop=True)
+        else:
+            tmp_df['start_time'] = pd.NaT
+        dataframes.append(tmp_df)
+    df_ = pd.concat(dataframes)
+    return df_[[
+        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
+        'ep_url']]
+
+
 def parse_imdb(title='the bachelor'):
     resp = t_request('http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title}))
     if resp.status_code != 200:
