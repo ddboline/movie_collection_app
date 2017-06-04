@@ -188,9 +188,8 @@ def get_bad_channels(available_dates, bad_channels):
             df_ = pd.DataFrame(time_prog_list)
             dataframes.append(df_)
     df_ = pd.concat(dataframes)
-    df_ = df_[[
-        'channel', 'start_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
-        'ep_url']].sort_values(by=['channel', 'start_time']).reset_index(drop=True)
+    df_ = df_[['channel', 'start_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
+               'ep_url']].sort_values(by=['channel', 'start_time']).reset_index(drop=True)
 
     dataframes = []
     for channel in df_.channel.unique():
