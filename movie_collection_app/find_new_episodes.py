@@ -5,7 +5,7 @@ import datetime
 from collections import defaultdict
 
 from movie_collection_app.movie_collection import MovieCollection
-from movie_collection_app.parse_imdb import parse_imdb_episode_list
+from movie_collection_app.parse_imdb import parse_imdb_episode_list, parse_imdb_tv_listings
 
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
@@ -14,6 +14,11 @@ watchlist = {
     'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
     'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'
 }
+
+
+def find_upcoming_episodes():
+    df = parse_imdb_tv_listings()
+    return
 
 
 def find_new_episodes(search=(), do_update=False):

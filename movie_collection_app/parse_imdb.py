@@ -3,6 +3,8 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import argparse
 import requests
 import time
+import datetime
+import pandas as pd
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
 try:
@@ -29,8 +31,10 @@ def t_request(endpoint):
                 raise
 
 
-def get_available_dates_channels():
-    resp = t_request('http://www.imdb.com/tvgrid')
+def get_available_dates_channels(zip_code=10026, tv_prov='NY31534'):
+    endpoint = 'http://www.imdb.com/tvgrid'
+    # endpoint += '?' + urlencode({'zip': zip_code, 'tv_prov': tv_prov})
+    resp = t_request(endpoint)
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -46,13 +50,14 @@ def get_available_dates_channels():
 
 
 def get_time_program_list(date=datetime.date.today(), channel='AMC'):
-    resp = t_request('http://www.imdb.com/tvgrid/%s/%s' % (str(date), channel))
+    endpoint = 'http://www.imdb.com/tvgrid/%s/%s' % (str(date), channel)
+    resp = t_request(endpoint)
     soup = BeautifulSoup(resp.text, 'html.parser')
     for table in soup.find_all('table'):
         if 'class' not in table.attrs:
             for tr_idx, tr in enumerate(table.find_all('tr')):
-                start_time, start_time_url, title, desc, imdb_title, imdb_url, ep_title, ep_url = 8 * [
-                    '']
+                (start_time, start_time_url, title, desc, imdb_title, imdb_url, ep_title,
+                 ep_url) = 8 * ['']
                 for td_idx, td in enumerate(tr.find_all('td')):
                     if td_idx == 0:
                         start_time = td.text
@@ -68,10 +73,10 @@ def get_time_program_list(date=datetime.date.today(), channel='AMC'):
                         for a in td.find_all('a'):
                             if not imdb_title:
                                 imdb_title = a.text
-                                imdb_url = a.attrs['href']
+                                imdb_url = a.attrs['href'].split('/')[2]
                             elif not ep_title:
                                 ep_title = a.text
-                                ep_url = a.attrs['href']
+                                ep_url = a.attrs['href'].split('/')[2]
                         desc = td.text.replace(title, '').strip()
                         if ep_title:
                             desc = desc.replace(ep_title, '').strip()
