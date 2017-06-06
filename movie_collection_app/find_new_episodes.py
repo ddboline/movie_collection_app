@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import argparse
 import datetime
+from dateutil.parser import parse
 from collections import defaultdict
 
 from movie_collection_app.movie_collection import MovieCollection
@@ -30,6 +31,13 @@ def find_new_episodes(search=(), do_update=False):
     max_episode = defaultdict(dict)
     current_seasons = defaultdict(set)
     current_episodes = defaultdict(set)
+    maxdate = datetime.date.today()
+    try:
+        if len(search) > 0:
+            maxdate = parse(search[0]).date()
+            search = ()
+    except (TypeError, ValueError):
+        pass
     for row in mq_.current_queue:
         show = row['show']
         if search and any(x not in show for x in search):
@@ -66,7 +74,7 @@ def find_new_episodes(search=(), do_update=False):
                 continue
             if episode <= max_episode[show][season]:
                 continue
-            if row['airdate'] > datetime.date.today():
+            if row['airdate'] > maxdate:
                 continue
             if (season, episode) in current_episodes:
                 continue
