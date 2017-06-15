@@ -228,6 +228,8 @@ def parse_imdb(title='the bachelor'):
 
 
 def parse_imdb_rating(title='tt0313038'):
+    if not title.startswith('tt'):
+        return -1
     resp_ = t_request('http://www.imdb.com/title/%s' % title)
     soup_ = BeautifulSoup(resp_.text, 'html.parser')
     for span in soup_.find_all('span'):
