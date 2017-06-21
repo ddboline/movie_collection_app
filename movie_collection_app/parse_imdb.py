@@ -15,6 +15,8 @@ except ImportError:
 list_of_commands = ('tv', 'season=<>')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
+#additional_channels = ('BBCA', 'WCBS', 'WNBC', 'WNYW', 'WABC', 'FREEFRM')
+additional_channels = ('BBCA', 'WNYW', 'FREEFRM')
 
 def t_request(endpoint):
     timeout = 1
@@ -142,8 +144,9 @@ def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=N
     return shows.values()
 
 
-def parse_imdb_tv_listings():
+def parse_imdb_tv_listings(additional_channels=additional_channels):
     available_dates, available_channels = get_available_dates_channels()
+    available_channels.extend(additional_channels)
 
     dataframes = []
     for channel in available_channels:
