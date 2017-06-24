@@ -4,22 +4,50 @@ import argparse
 import datetime
 from dateutil.parser import parse
 from collections import defaultdict
+from sqlalchemy import create_engine
+import pandas as pd
 
 from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.parse_imdb import parse_imdb_episode_list, parse_imdb_tv_listings
+from movie_collection_app.util import POSTGRESTRING
 
 list_of_commands = ('list', 'search', 'wl')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 watchlist = {
     '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
     'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
-    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'
-}
+    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'}
+
+pg_db = '%s:5432/movie_queue' % POSTGRESTRING
+engine = create_engine(pg_db)
 
 
 def find_upcoming_episodes():
     df = parse_imdb_tv_listings()
-    return
+    with engine.connect() as db:
+        query = """
+            SELECT 
+                t1.show,
+                t1.season,
+                t1.episode,
+                t2.link as imdb_url,
+                t1.epurl as ep_url
+            FROM imdb_episodes t1
+            JOIN imdb_ratings t2 ON t1.show = t2.show
+        """
+        rating_df = pd.read_sql(query, db)
+    imdb_urls = set(rating_df.imdb_url.unique())
+    ep_urls = set(rating_df.ep_url.unique())
+    df = df[(df.imdb_url.isin(imdb_urls)) & (-df.ep_url.isin(ep_urls))].reset_index(drop=True)
+
+    for imdb_url in df.imdb_url.unique():
+        for item in parse_imdb_episode_list(imdb_url, season=-1):
+            season = item[0]
+            if season < max_s:
+                continue
+            mq_.get_imdb_episode_ratings(show, season)
+
+    return df
 
 
 def find_new_episodes(search=(), do_update=False):
@@ -81,8 +109,9 @@ def find_new_episodes(search=(), do_update=False):
             eptitle = row['eptitle']
             eprating = row['rating']
             airdate = row['airdate']
-            output[(airdate, show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (
-                show, title, eptitle, season, episode, eprating, rating, airdate)
+            output[(airdate,
+                    show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (show, title, eptitle, season,
+                                                                episode, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)
@@ -145,8 +174,9 @@ def find_new_episodes_watchlist(search=(), do_update=False):
             eptitle = row['eptitle']
             eprating = row['rating']
             airdate = row['airdate']
-            output[(airdate, show)] = '%s %s %d %d %s %0.2f/%0.2f %s' % (
-                show, title, season, episode, eptitle, eprating, rating, airdate)
+            output[(airdate,
+                    show)] = '%s %s %d %d %s %0.2f/%0.2f %s' % (show, title, season, episode,
+                                                                eptitle, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)
