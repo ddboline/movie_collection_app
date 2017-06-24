@@ -8,15 +8,19 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
 try:
-    from urllib import urlencode
+    from urllib import urlencode, quote
 except ImportError:
-    from urllib.parse import urlencode
+    from urllib.parse import urlencode, quote
 
 list_of_commands = ('tv', 'season=<>')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
 #additional_channels = ('BBCA', 'WCBS', 'WNBC', 'WNYW', 'WABC', 'FREEFRM')
-additional_channels = ('BBCA', 'WNYW', 'FREEFRM')
+additional_channels = ('BBCA', 'WNYW', 'FREEFRM', 'FXX')
+veto_channels = ('Fox', 'MyNetwork', 'ABCF', 'HALMRK', 'WGNAMER')
+
+proxy_uri = 'http://openwebproxy.pw/browse.php?u={0}'
+
 
 def t_request(endpoint):
     timeout = 1
@@ -27,15 +31,19 @@ def t_request(endpoint):
             return resp
         except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as exc:
             print('timeout %s, %s' % (timeout, exc))
+            if exc.message.startswith('404 Client Error: Not Found for url:'):
+                raise
             time.sleep(timeout)
             timeout *= 2
             if timeout >= 64:
                 raise
 
 
-def get_available_dates_channels(zip_code=10026, tv_prov='NY31534'):
+def get_available_dates_channels(zip_code=None, tv_prov=None):
+    # zip_code=10026, tv_prov='NY31534'
     endpoint = 'http://www.imdb.com/tvgrid'
-    # endpoint += '?' + urlencode({'zip': zip_code, 'tv_prov': tv_prov})
+    if zip_code is not None and tv_prov is not None:
+        endpoint += '?' + urlencode({'zip': zip_code, 'tv_prov': tv_prov})
     resp = t_request(endpoint)
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
@@ -146,12 +154,17 @@ def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=N
 
 def parse_imdb_tv_listings(additional_channels=additional_channels):
     available_dates, available_channels = get_available_dates_channels()
-    available_channels.extend(additional_channels)
+
+    available_channels = set(available_channels)
+    available_channels |= set(additional_channels)
+    available_channels -= set(veto_channels)
 
     dataframes = []
     for channel in available_channels:
         tmp_dfs = []
         for date in available_dates:
+            if date < datetime.date.today():
+                continue
             print('channel %s date %s' % (channel, date))
             last_date = (datetime.datetime.combine(date, datetime.time()) + datetime.timedelta(
                 days=-1)).date()
@@ -171,18 +184,12 @@ def parse_imdb_tv_listings(additional_channels=additional_channels):
         idx = df[df.end_time.isnull()].index
         nidx = idx + 1
         df.loc[df.index.isin(idx[:-1]), 'end_time'] = df[df.index.isin(nidx)].start_time.values
+        df = df[df.end_time.notnull()]
         dataframes.append(df)
     df = pd.concat(dataframes)
     df = df[[
         'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
-        'ep_url']]
-
-    cc = df.channel.value_counts()
-
-    bad_channels = cc[cc == len(available_dates)].index
-    df = df[~df.channel.isin(bad_channels)]
-    df2 = get_bad_channels(available_dates, bad_channels)
-    df = pd.concat([df, df2]).reset_index(drop=True)
+        'ep_url']].reset_index(drop=True)
     return df
 
 
@@ -232,13 +239,70 @@ def parse_imdb(title='the bachelor'):
 
 def parse_imdb_rating(title='tt0313038'):
     if not title.startswith('tt'):
-        return -1
+        return -1, -1
     resp_ = t_request('http://www.imdb.com/title/%s' % title)
     soup_ = BeautifulSoup(resp_.text, 'html.parser')
+    rating = -1
     for span in soup_.find_all('span'):
         if 'itemprop' in span.attrs and span.attrs.get('itemprop', None) == 'ratingValue':
-            return float(span.text)
-    return -1
+            rating = float(span.text)
+        if 'itemprop' in span.attrs and span.attrs.get('itemprop', None) == 'ratingCount':
+            return rating, float(span.text.replace(',', ''))
+    return -1, -1
+
+
+def parse_imdb_episode_number(title='tt0313038', proxy=False):
+    endpoint = 'http://m.imdb.com/title/%s' % title
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
+    try:
+        resp_ = t_request(endpoint)
+    except requests.exceptions.ConnectionError as exc:
+        print(title, exc)
+        raise
+    soup_ = BeautifulSoup(resp_.text, 'html.parser')
+    entry_type = ''
+    season, episode = -1, -1
+    for meta_ in soup_.find_all('meta'):
+        if meta_.attrs.get('property') == 'og:type':
+            entry_type = meta_.attrs.get('content')
+    if entry_type != 'video.episode':
+        return -1, -1
+    for div_ in soup_.find_all('div'):
+        if div_.attrs.get('id') == 'episodesBar':
+            for span in div_.find_all('span'):
+                if 'Season' in span.text:
+                    season = span.text.replace('Season', '').strip()
+                if 'Episode' in span.text:
+                    episode = span.text.replace('Episode', '').strip()
+                    return int(season), int(episode)
+    return season, episode
+
+
+def parse_imdb_rating_mobile(title='tt0313038', proxy=False):
+    endpoint = 'http://m.imdb.com/title/%s' % title
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
+    try:
+        resp_ = t_request(endpoint)
+    except requests.exceptions.ConnectionError as exc:
+        print(title, exc)
+        raise
+    soup_ = BeautifulSoup(resp_.text, 'html.parser')
+    rating_, nrating_, entry_type = '-1', '-1', ''
+    entry_type = ''
+    for meta_ in soup_.find_all('meta'):
+        if meta_.attrs.get('property') == 'og:type':
+            entry_type = meta_.attrs.get('content')
+    for div_ in soup_.find_all('div'):
+        if div_.attrs.get('id') == 'ratings-bar':
+            for span in div_.find_all('span'):
+                if 'class' in span.attrs \
+                        and 'inline-block' \
+                        in span.attrs['class']:
+                    rating_, nrating_ = span.text.split('/10')[:2]
+                    return float(rating_), int(nrating_.replace(',', '')), entry_type
+    return float(rating_), int(nrating_.replace(',', '')), entry_type
 
 
 def parse_imdb_mobile_tv(title='the bachelor'):
@@ -327,7 +391,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                             if len(epi_url) > 2:
                                 epi_url = epi_url[2]
                                 epi_title = a_.text.strip()
-                                rating = parse_imdb_rating(epi_url)
+                                rating, nrating = parse_imdb_rating(epi_url)
                             else:
                                 print('epi_url', epi_url)
                                 epi_url = ''
