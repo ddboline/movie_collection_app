@@ -22,11 +22,12 @@ pg_db = '%s:5432/movie_queue' % POSTGRESTRING
 engine = create_engine(pg_db)
 
 
-def find_upcoming_episodes():
-    df = parse_imdb_tv_listings()
+def find_upcoming_episodes(df=None):
+    if df is None:
+        df = parse_imdb_tv_listings()
     with engine.connect() as db:
         query = """
-            SELECT 
+            SELECT
                 t1.show,
                 t1.season,
                 t1.episode,
@@ -40,11 +41,32 @@ def find_upcoming_episodes():
     ep_urls = set(rating_df.ep_url.unique())
     df = df[(df.imdb_url.isin(imdb_urls)) & (-df.ep_url.isin(ep_urls))].reset_index(drop=True)
 
-    for imdb_url in df.imdb_url.unique():
+    mq_ = MovieCollection()
+    max_season = {}
+    current_shows = set()
+    for row in mq_.current_queue:
+        show = row['show']
+        fname = row['path']
+        season, episode = mq_.get_season_episode_from_name(fname, show)
+        if season == -1 or episode == -1:
+            continue
+        max_s = max_season.get(show, -1)
+        current_shows.add(show)
+        max_season[show] = max(max_s, season)
+
+    imdb_urls = set(df.imdb_url.unique())
+
+    for show in sorted(current_shows):
+        max_s = max_season[show]
+        imdb_url = mq_.imdb_ratings[show]['link']
+        if imdb_url not in imdb_urls:
+            continue
+
         for item in parse_imdb_episode_list(imdb_url, season=-1):
             season = item[0]
             if season < max_s:
                 continue
+            print(show, season)
             mq_.get_imdb_episode_ratings(show, season)
 
     return df
