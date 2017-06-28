@@ -11,7 +11,7 @@ from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.parse_imdb import parse_imdb_episode_list, parse_imdb_tv_listings
 from movie_collection_app.util import POSTGRESTRING
 
-list_of_commands = ('list', 'search', 'wl')
+list_of_commands = ('list', 'search', 'wl', 'tv')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 watchlist = {
     '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
