@@ -31,7 +31,7 @@ def t_request(endpoint):
             return resp
         except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as exc:
             print('timeout %s, %s' % (timeout, exc))
-            if exc.message.startswith('404 Client Error: Not Found for url:'):
+            if '404 Client Error: Not Found for url:' in exc.message:
                 raise
             time.sleep(timeout)
             timeout *= 2

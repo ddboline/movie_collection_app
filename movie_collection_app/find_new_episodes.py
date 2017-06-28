@@ -226,5 +226,7 @@ def find_new_episodes_parse():
 
     if _command == 'wl':
         find_new_episodes_watchlist(_args, do_update)
+    elif _command == 'tv':
+        find_upcoming_episodes()
     else:
         find_new_episodes(_args, do_update)
