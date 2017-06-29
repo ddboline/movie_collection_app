@@ -2,6 +2,8 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import argparse
 import datetime
+import time
+import os
 from dateutil.parser import parse
 from collections import defaultdict
 from sqlalchemy import create_engine
@@ -23,8 +25,14 @@ engine = create_engine(pg_db)
 
 
 def find_upcoming_episodes(df=None):
+    cache_file = '/tmp/parse_imdb_tv_listings.csv.gz'
+    if os.path.exists(cache_file) and os.stat(cache_file).st_mtime > time.time() - 86400:
+        df = pd.read_csv(cache_file, compression='gzip')
+
     if df is None:
         df = parse_imdb_tv_listings()
+        df.to_csv(cache_file, compression='gzip', encoding='utf-8')
+
     with engine.connect() as db:
         query = """
             SELECT
@@ -61,12 +69,19 @@ def find_upcoming_episodes(df=None):
         imdb_url = mq_.imdb_ratings[show]['link']
         if imdb_url not in imdb_urls:
             continue
+        
+        season_episode_ratings = defaultdict(dict)
+        for (s, e), v in mq_.imdb_episode_ratings[show].items():
+            season_episode_ratings[s][e] = float(v['rating'])
 
         for item in parse_imdb_episode_list(imdb_url, season=-1):
             season = item[0]
+            nepisodes = item[3]
+            print(show, season)
             if season < max_s:
                 continue
-            print(show, season)
+            if nepisodes == len([k for k, v in season_episode_ratings[season].items() if v > 0]):
+                continue
             mq_.get_imdb_episode_ratings(show, season)
 
     return df
