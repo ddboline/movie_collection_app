@@ -7,6 +7,7 @@ import datetime
 import pandas as pd
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
+from collections import defaultdict
 try:
     from urllib import urlencode, quote
 except ImportError:
@@ -340,6 +341,7 @@ def parse_imdb_mobile_tv(title='the bachelor'):
 
 
 def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
+    number_of_episodes = defaultdict(int)
     try:
         resp = t_request('http://m.imdb.com/title/%s/episodes' % imdb_id)
     except requests.exceptions.ConnectionError as exc:
@@ -353,11 +355,12 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                 and 'season' in a.attrs['class']:
             link = a.attrs['href']
             season_ = int(a.attrs.get('season_number', -1))
-            if season == -1 and season_ != -1:
-                yield season_, -1, None, -1, 'season', None
+            #if season == -1 and season_ != -1:
+                #yield season_, -1, None, -1, 'season', None
+                #continue
+            if season is not None and season != -1 and season != season_:
                 continue
-            if season is not None and season != season_:
-                continue
+
             episodes_url = 'http://www.imdb.com/title/%s/episodes/%s' \
                            % (imdb_id, link)
             resp_ = t_request(episodes_url)
@@ -386,6 +389,11 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                         if epi_url:
                             continue
                         epi_url = a_.attrs.get('href', None)
+
+                        number_of_episodes[season_] += 1
+                        if season == -1:
+                            continue
+                        
                         if epi_url:
                             epi_url = epi_url.split('/')
                             if len(epi_url) > 2:
@@ -395,8 +403,10 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                             else:
                                 print('epi_url', epi_url)
                                 epi_url = ''
-                    if season_ >= 0 and episode >= 0 and airdate:
+                    if season != -1 and season_ >= 0 and episode >= 0 and airdate:
                         yield (season_, episode, airdate, rating, epi_title, epi_url)
+            if season == -1:
+                yield season_, -1, None, number_of_episodes[season_], 'season', None
 
 
 def parse_imdb_argparse():
