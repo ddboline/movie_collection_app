@@ -77,11 +77,11 @@ def find_upcoming_episodes(df=None):
         for item in parse_imdb_episode_list(imdb_url, season=-1):
             season = item[0]
             nepisodes = item[3]
-            print(show, season)
             if season < max_s:
                 continue
             if nepisodes == len([k for k, v in season_episode_ratings[season].items() if v > 0]):
                 continue
+            print(show, season)
             mq_.get_imdb_episode_ratings(show, season)
 
     return df
