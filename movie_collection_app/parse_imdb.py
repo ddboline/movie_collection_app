@@ -355,9 +355,6 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                 and 'season' in a.attrs['class']:
             link = a.attrs['href']
             season_ = int(a.attrs.get('season_number', -1))
-            #if season == -1 and season_ != -1:
-                #yield season_, -1, None, -1, 'season', None
-                #continue
             if season is not None and season != -1 and season != season_:
                 continue
 
@@ -393,7 +390,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                         number_of_episodes[season_] += 1
                         if season == -1:
                             continue
-                        
+
                         if epi_url:
                             epi_url = epi_url.split('/')
                             if len(epi_url) > 2:
