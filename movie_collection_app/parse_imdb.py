@@ -365,8 +365,8 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
             for div in soup_.find_all('div'):
                 if 'info' in div.attrs.get('class', []) \
                         and div.attrs.get('itemprop', None) == 'episodes':
-                    episode, airdate, rating, epi_title = -1, None, -1, None
-                    epi_url = None
+                    (episode, airdate, rating, nrating, epi_title, epi_url) = (-1, None, -1, -1,
+                                                                               None, None)
                     for meta in div.find_all('meta'):
                         if meta.attrs.get('itemprop', None) == 'episodeNumber':
                             episode = meta.attrs.get('content', -1)
@@ -375,8 +375,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                             except ValueError:
                                 pass
                     for div_ in div.find_all('div'):
-                        if 'airdate' in div_.attrs.get('class', []) \
-                                and div_.text.strip():
+                        if 'airdate' in div_.attrs.get('class', []) and div_.text.strip():
                             try:
                                 int(div_.text)
                                 airdate = None
@@ -401,9 +400,9 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                                 print('epi_url', epi_url)
                                 epi_url = ''
                     if season != -1 and season_ >= 0 and episode >= 0 and airdate:
-                        yield (season_, episode, airdate, rating, epi_title, epi_url)
+                        yield season_, episode, airdate, rating, nrating, epi_title, epi_url
             if season == -1:
-                yield season_, -1, None, number_of_episodes[season_], 'season', None
+                yield season_, -1, None, number_of_episodes[season_], -1, 'season', None
 
 
 def parse_imdb_argparse():
@@ -455,7 +454,7 @@ def parse_imdb_argparse():
         print(title, imdb_link, rating)
         if season == -1:
             for item in parse_imdb_episode_list(imdb_link, season=-1):
-                season_, _, _, _, _, _ = item
+                season_, _, _, _, _, _, _ = item
                 print(title, season_)
         elif show_:
             if do_update:
@@ -471,7 +470,7 @@ def parse_imdb_argparse():
                 print(title, season_, episode, airdate, ep_rating, ep_title)
         else:
             for item in parse_imdb_episode_list(imdb_link, season=season):
-                season_, episode, airdate, ep_rating, ep_title, ep_url = item
+                season_, episode, airdate, ep_rating, _, ep_title, ep_url = item
                 print(title, season_, episode, airdate, ep_rating, ep_title)
     else:
         for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name)):

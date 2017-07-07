@@ -69,7 +69,7 @@ def find_upcoming_episodes(df=None):
         imdb_url = mq_.imdb_ratings[show]['link']
         if imdb_url not in imdb_urls:
             continue
-        
+
         season_episode_ratings = defaultdict(dict)
         for (s, e), v in mq_.imdb_episode_ratings[show].items():
             season_episode_ratings[s][e] = float(v['rating'])

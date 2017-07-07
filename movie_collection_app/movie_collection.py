@@ -142,8 +142,8 @@ class MovieCollection(object):
                 if all(x is not None for x in (show, season)) \
                         and season_ != season:
                     continue
-                for item in parse_imdb_episode_list(imdb_id=url, season=season_):
-                    se_, epi, ad_, rt_, eti, eurl = item
+                for item_ in parse_imdb_episode_list(imdb_id=url, season=season_):
+                    se_, epi, ad_, rt_, _, eti, eurl = item_
                     itdict = {
                         'id': idx,
                         'show': show_,
