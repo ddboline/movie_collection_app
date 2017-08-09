@@ -235,7 +235,7 @@ def parse_imdb(title='the bachelor'):
                     if hasattr(a, 'attrs'):
                         link = a.attrs['href'].split('/')[2]
                         rating_ = parse_imdb_rating(link)
-                        yield title_, link, rating_
+                        yield title_, link, rating_[0]
 
 
 def parse_imdb_rating(title='tt0313038'):
