@@ -10,7 +10,8 @@ from sqlalchemy import create_engine
 import pandas as pd
 
 from movie_collection_app.movie_collection import MovieCollection
-from movie_collection_app.parse_imdb import parse_imdb_episode_list, parse_imdb_tv_listings
+from movie_collection_app.parse_imdb import (parse_imdb_episode_list, parse_imdb_tv_listings,
+                                             parse_imdb_main)
 from movie_collection_app.util import POSTGRESTRING
 
 list_of_commands = ('list', 'search', 'wl', 'tv')
@@ -82,7 +83,7 @@ def find_upcoming_episodes(df=None):
             if nepisodes == len([k for k, v in season_episode_ratings[season].items() if v > 0]):
                 continue
             print(show, season)
-            mq_.get_imdb_episode_ratings(show, season)
+            parse_imdb_main(show, do_tv=True, do_update=True, season=season)
 
     return df
 

@@ -405,36 +405,8 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                 yield season_, -1, None, number_of_episodes[season_], -1, 'season', None
 
 
-def parse_imdb_argparse():
+def parse_imdb_main(name, do_tv, do_update, season):
     from movie_collection_app.movie_collection import MovieCollection
-
-    parser = argparse.ArgumentParser(description='parse_imdb script')
-    parser.add_argument('command', nargs='*', help=help_text)
-    args = parser.parse_args()
-
-    name = []
-    do_tv = False
-    do_update = False
-    season = None
-    if hasattr(args, 'command'):
-        for arg in args.command:
-            if arg == 'h':
-                print(help_text)
-            elif arg == 'tv':
-                do_tv = True
-            elif arg == 'update':
-                do_update = True
-            elif 'season=' in arg:
-                tmp = arg.replace('season=', '')
-                try:
-                    season = int(tmp)
-                except ValueError:
-                    pass
-                continue
-            else:
-                name.append(arg.replace('_', ' '))
-
-    name = ' '.join(name)
 
     mc_ = MovieCollection()
 
@@ -477,3 +449,34 @@ def parse_imdb_argparse():
             if idx > 2:
                 break
             print(idx, title, imdb_link, rating)
+
+
+def parse_imdb_argparse():
+
+    parser = argparse.ArgumentParser(description='parse_imdb script')
+    parser.add_argument('command', nargs='*', help=help_text)
+    args = parser.parse_args()
+
+    name = []
+    do_tv = False
+    do_update = False
+    season = None
+    if hasattr(args, 'command'):
+        for arg in args.command:
+            if arg == 'h':
+                print(help_text)
+            elif arg == 'tv':
+                do_tv = True
+            elif arg == 'update':
+                do_update = True
+            elif 'season=' in arg:
+                tmp = arg.replace('season=', '')
+                try:
+                    season = int(tmp)
+                except ValueError:
+                    pass
+                continue
+            else:
+                name.append(arg.replace('_', ' '))
+    name = ' '.join(name)
+    return parse_imdb_main(name, do_tv, do_update, season)
