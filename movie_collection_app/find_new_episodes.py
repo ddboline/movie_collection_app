@@ -25,7 +25,7 @@ pg_db = '%s:5432/movie_queue' % POSTGRESTRING
 engine = create_engine(pg_db)
 
 
-def find_upcoming_episodes(df=None):
+def find_upcoming_episodes(df=None, do_update=False):
     cache_file = '/tmp/parse_imdb_tv_listings.csv.gz'
     if os.path.exists(cache_file) and os.stat(cache_file).st_mtime > time.time() - 86400:
         df = pd.read_csv(cache_file, compression='gzip')
@@ -40,6 +40,7 @@ def find_upcoming_episodes(df=None):
                 t1.show,
                 t1.season,
                 t1.episode,
+                t2.title,
                 t2.link as imdb_url,
                 t1.epurl as ep_url
             FROM imdb_episodes t1
@@ -48,7 +49,20 @@ def find_upcoming_episodes(df=None):
         rating_df = pd.read_sql(query, db)
     imdb_urls = set(rating_df.imdb_url.unique())
     ep_urls = set(rating_df.ep_url.unique())
-    df = df[(df.imdb_url.isin(imdb_urls)) & (-df.ep_url.isin(ep_urls))].reset_index(drop=True)
+    
+    def clean_string(x):
+        x = x.decode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
+        return x.replace("'", '').replace('&', 'and').replace(':', '')
+    
+    titles = set(map(clean_string, rating_df.title.unique()))
+
+    df.title = df.title.apply(clean_string)
+
+    cond0 = df.imdb_url.isin(imdb_urls)
+    cond0 &= -df.ep_url.isin(ep_urls)
+    cond1 = -df.imdb_url.isin(imdb_urls)
+    cond1 &= df.title.isin(titles)
+    df = df[cond0 | cond1].reset_index(drop=True)
 
     mq_ = MovieCollection()
     max_season = {}
@@ -63,13 +77,15 @@ def find_upcoming_episodes(df=None):
         current_shows.add(show)
         max_season[show] = max(max_s, season)
 
-    imdb_urls = set(df.imdb_url.unique())
+    imdb_urls = set(df.imdb_url.dropna().unique())
+    titles = set(df.title.unique())
 
     for show in sorted(current_shows):
         max_s = max_season[show]
         imdb_url = mq_.imdb_ratings[show]['link']
-        if imdb_url not in imdb_urls:
+        if imdb_url not in imdb_urls and show not in titles and not any(x in show for x in titles):
             continue
+        print(show, imdb_url, max_s)
 
         season_episode_ratings = defaultdict(dict)
         for (s, e), v in mq_.imdb_episode_ratings[show].items():
@@ -82,8 +98,7 @@ def find_upcoming_episodes(df=None):
                 continue
             if nepisodes == len([k for k, v in season_episode_ratings[season].items() if v > 0]):
                 continue
-            print(show, season)
-            parse_imdb_main(show, do_tv=True, do_update=True, season=season)
+            parse_imdb_main(show, do_tv=True, do_update=do_update, season=season)
 
     return df
 
@@ -243,6 +258,6 @@ def find_new_episodes_parse():
     if _command == 'wl':
         find_new_episodes_watchlist(_args, do_update)
     elif _command == 'tv':
-        find_upcoming_episodes()
+        find_upcoming_episodes(do_update=do_update)
     else:
         find_new_episodes(_args, do_update)
