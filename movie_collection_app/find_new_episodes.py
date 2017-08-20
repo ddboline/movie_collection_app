@@ -51,7 +51,10 @@ def find_upcoming_episodes(df=None, do_update=False):
     ep_urls = set(rating_df.ep_url.unique())
     
     def clean_string(x):
-        x = x.decode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
+        try:
+            x = x.encode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
+        except:
+            x = x.decode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
         return x.replace("'", '').replace('&', 'and').replace(':', '')
     
     titles = set(map(clean_string, rating_df.title.unique()))
