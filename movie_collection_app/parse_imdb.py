@@ -426,8 +426,8 @@ def parse_imdb_main(name, do_tv, do_update, season):
         print(title, imdb_link, rating)
         if season == -1:
             for item in parse_imdb_episode_list(imdb_link, season=-1):
-                season_, _, _, _, _, _, _ = item
-                print(title, season_)
+                season_, _, _, neps, _, _, _ = item
+                print(title, season_, neps)
         elif show_:
             if do_update:
                 mc_.get_imdb_episode_ratings(show=show_, season=season)
