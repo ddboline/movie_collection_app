@@ -4,11 +4,13 @@ import argparse
 import datetime
 import time
 import os
+import re
 from dateutil.parser import parse
 from collections import defaultdict
 from sqlalchemy import create_engine
 import pandas as pd
 
+from movie_collection_app.trakt_instance import TraktInstance
 from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.parse_imdb import (parse_imdb_episode_list, parse_imdb_tv_listings,
                                              parse_imdb_main)
@@ -18,8 +20,10 @@ list_of_commands = ('list', 'search', 'wl', 'tv')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 watchlist = {
     '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
-    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
-    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'}
+    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver',
+    'outlander_2014', 'silicon_valley', 'the_last_panthers', 'the_night_manager',
+    'fear_the_walking_dead', 'unreal'
+}
 
 pg_db = '%s:5432/movie_queue' % POSTGRESTRING
 engine = create_engine(pg_db)
@@ -49,14 +53,14 @@ def find_upcoming_episodes(df=None, do_update=False):
         rating_df = pd.read_sql(query, db)
     imdb_urls = set(rating_df.imdb_url.unique())
     ep_urls = set(rating_df.ep_url.unique())
-    
+
     def clean_string(x):
         try:
             x = x.encode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
         except:
             x = x.decode(errors='ignore').lower().split('(')[0].strip().replace(' ', '_')
         return x.replace("'", '').replace('&', 'and').replace(':', '')
-    
+
     titles = set(map(clean_string, rating_df.title.unique()))
 
     df.title = df.title.apply(clean_string)
@@ -68,24 +72,47 @@ def find_upcoming_episodes(df=None, do_update=False):
     df = df[cond0 | cond1].reset_index(drop=True)
 
     mq_ = MovieCollection()
+    ti_ = TraktInstance()
+
+    trakt_watchlist_shows = ti_.get_watchlist_shows()
+    trakt_watched_shows = ti_.get_watched_shows()
+
     max_season = {}
     current_shows = set()
+    imdb_show_map = {v['link']: k for k, v in mq_.imdb_ratings.items()}
+
     for row in mq_.current_queue:
         show = row['show']
         fname = row['path']
         season, episode = mq_.get_season_episode_from_name(fname, show)
         if season == -1 or episode == -1:
             continue
-        max_s = max_season.get(show, -1)
-        current_shows.add(show)
-        max_season[show] = max(max_s, season)
+        imdb_url = imdb_show_map[show]
+        max_s = max_season.get(imdb_url, -1)
+        current_shows.add(imdb_url)
+        max_season[imdb_url] = max(max_s, season)
+
+    for imdb_url, showinfo in trakt_watchlist_shows.items():
+        if imdb_url in current_shows:
+            continue
+        current_shows.add(imdb_url)
+        show = imdb_show_map.get(imdb_url, showinfo.title.lower().replace(' ', '_'))
+        if imdb_url not in imdb_show_map:
+            imdb_show_map[imdb_url] = show
+        max_season[imdb_url] = -1
+
+    for imdb_url in current_shows:
+        if imdb_url in trakt_watched_shows:
+            for s, e in sorted(trakt_watched_shows[imdb_url]):
+                max_s = max_season.get(imdb_url, -1)
+                max_season[imdb_url] = max(s, max_s)
 
     imdb_urls = set(df.imdb_url.dropna().unique())
     titles = set(df.title.unique())
 
-    for show in sorted(current_shows):
-        max_s = max_season[show]
-        imdb_url = mq_.imdb_ratings[show]['link']
+    for imdb_url in sorted(current_shows):
+        show = imdb_show_map[imdb_url]
+        max_s = max_season[imdb_url]
         if imdb_url not in imdb_urls and show not in titles and not any(x in show for x in titles):
             continue
         print(show, imdb_url, max_s)
@@ -111,6 +138,10 @@ def find_upcoming_episodes(df=None, do_update=False):
 def find_new_episodes(search=(), do_update=False):
     output = {}
     mq_ = MovieCollection()
+    ti_ = TraktInstance()
+
+    trakt_watchlist_shows = ti_.get_watchlist_shows()
+    trakt_watched_shows = ti_.get_watched_shows()
 
     current_shows = set()
     max_season = {}
@@ -118,12 +149,15 @@ def find_new_episodes(search=(), do_update=False):
     current_seasons = defaultdict(set)
     current_episodes = defaultdict(set)
     maxdate = datetime.date.today()
+    imdb_show_map = {v['link']: k for k, v in mq_.imdb_ratings.items()}
+
     try:
         if len(search) > 0:
             maxdate = parse(search[0]).date()
             search = ()
     except (TypeError, ValueError):
         pass
+
     for row in mq_.current_queue:
         show = row['show']
         if search and any(x not in show for x in search):
@@ -132,37 +166,68 @@ def find_new_episodes(search=(), do_update=False):
         season, episode = mq_.get_season_episode_from_name(fname, show)
         if season == -1 or episode == -1:
             continue
-        max_s = max_season.get(show, -1)
-        max_e = max_episode.get(show, {}).get(season, -1)
-        current_shows.add(show)
-        max_season[show] = max(max_s, season)
-        max_episode[show][season] = max(max_e, episode)
-        current_seasons[show].add(season)
-        current_episodes[show].add((season, episode))
+        imdb_url = mq_.imdb_ratings[show]['link']
+        max_s = max_season.get(imdb_url, -1)
+        max_e = max_episode.get(imdb_url, {}).get(season, -1)
+        current_shows.add(imdb_url)
+        max_season[imdb_url] = max(max_s, season)
+        max_episode[imdb_url][season] = max(max_e, episode)
+        current_seasons[imdb_url].add(season)
+        current_episodes[imdb_url].add((season, episode))
 
-    for show in sorted(current_shows):
-        max_s = max_season[show]
-        max_e = max_episode[show][max_s]
-        imdb_link = mq_.imdb_ratings[show]['link']
+    for imdb_url, showinfo in trakt_watchlist_shows.items():
+        if imdb_url in current_shows:
+            continue
+
+        if imdb_url not in imdb_show_map:
+            show = re.sub('[^A-Za-z0-9 ]', '', showinfo.title).lower().replace(' ', '_')
+            mq_.imdb_ratings[show] = ti_.get_imdb_rating(show, imdb_url)
+            print(mq_.imdb_ratings[show])
+        else:
+            show = imdb_show_map[imdb_url]
+
+        if search and any(x not in show for x in search):
+            continue
+
+        current_shows.add(imdb_url)
+        if imdb_url not in imdb_show_map:
+            imdb_show_map[imdb_url] = show
+        max_season[imdb_url] = -1
+        max_episode[imdb_url][-1] = -1
+
+    for imdb_url in current_shows:
+        if imdb_url in trakt_watched_shows:
+            for s, e in sorted(trakt_watched_shows[imdb_url]):
+                max_s = max_season.get(imdb_url, -1)
+                max_e = max_episode.get(imdb_url, {}).get(s, -1)
+                max_season[imdb_url] = max(s, max_s)
+                max_episode[imdb_url][s] = max(e, max_e)
+                current_seasons[imdb_url].add(s)
+                current_episodes[imdb_url].add((s, e))
+
+    for imdb_url in sorted(current_shows):
+        show = imdb_show_map[imdb_url]
+        max_s = max_season[imdb_url]
+        max_e = max_episode[imdb_url][max_s]
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
-        if imdb_link == '':
+        if imdb_url == '':
             continue
         if do_update:
-            for item in parse_imdb_episode_list(imdb_link, season=-1):
+            for item in parse_imdb_episode_list(imdb_url, season=-1):
                 season = item[0]
                 if season < max_s:
                     continue
                 mq_.get_imdb_episode_ratings(show, season)
         for season, episode in sorted(mq_.imdb_episode_ratings[show]):
             row = mq_.imdb_episode_ratings[show][(season, episode)]
-            if season < max_s or season not in current_seasons[show]:
+            if season < max_s or season not in current_seasons[imdb_url]:
                 continue
-            if episode <= max_episode[show][season]:
+            if episode <= max_episode[imdb_url][season]:
                 continue
             if row['airdate'] > maxdate:
                 continue
-            if (season, episode) in current_episodes:
+            if (season, episode) in current_episodes[imdb_url]:
                 continue
             eptitle = row['eptitle']
             eprating = row['rating']
@@ -207,11 +272,11 @@ def find_new_episodes_watchlist(search=(), do_update=False):
     for show in sorted(current_shows):
         max_s = max_season[show]
         max_e = max_episode[show][max_s]
-        imdb_link = mq_.imdb_ratings[show]['link']
+        imdb_url = mq_.imdb_ratings[show]['link']
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
         if do_update:
-            for item in parse_imdb_episode_list(imdb_link, season=-1):
+            for item in parse_imdb_episode_list(imdb_url, season=-1):
                 season = item[0]
                 if season < max_s:
                     continue
