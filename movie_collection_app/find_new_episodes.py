@@ -234,9 +234,8 @@ def find_new_episodes(search=(), do_update=False):
             eptitle = row['eptitle']
             eprating = row['rating']
             airdate = row['airdate']
-            output[(airdate,
-                    show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (show, title, eptitle, season,
-                                                                episode, eprating, rating, airdate)
+            output[(airdate, show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (
+                        show, title, eptitle, season, episode, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)

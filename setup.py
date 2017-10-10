@@ -15,7 +15,8 @@ console_scripts = (
     ('movie-queue-flask', 'movie_collection_app.movie_queue_flask:run_make_queue_flask'),
     ('make-collection', 'movie_collection_app.make_collection:make_collection_parse'),
     ('make-list', 'movie_collection_app.make_list:make_list_main'),
-    ('find-new-episodes', 'movie_collection_app.find_new_episodes:find_new_episodes_parse'))
+    ('find-new-episodes', 'movie_collection_app.find_new_episodes:find_new_episodes_parse'),
+    ('trakt-app', 'movie_collection_app.trakt_instance:trakt_parse'))
 
 if sys.version_info.major == 2:
     console_scripts = ['%s = %s' % (x, y) for x, y in console_scripts]
@@ -25,7 +26,7 @@ else:
 
 setup(
     name='movie_collection_app',
-    version='0.0.2.9',
+    version='0.0.3.0',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',

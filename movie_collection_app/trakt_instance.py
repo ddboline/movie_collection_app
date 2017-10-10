@@ -9,11 +9,15 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import os
 import json
 from threading import Condition
+import argparse
 
 from trakt import Trakt
 
 from movie_collection_app.movie_collection import MovieCollection
 from movie_collection_app.parse_imdb import parse_imdb_mobile_tv, parse_imdb
+
+list_of_commands = ('list', 'search', 'add', 'cal')
+help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
 
 def read_credentials():
@@ -240,7 +244,9 @@ class TraktInstance(object):
 
     def do_query(self, show, media='show'):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
-            return Trakt['search'].query(show.replace('_', ' '), media=media, pagination=True)
+            shows = Trakt['search'].query(show.replace('_', ' '), media=media, pagination=True)
+            shows = {s.get_key('imdb'): s for s in shows}
+            return shows
 
     def add_show_to_watchlist(self, show=None, imdb_id=None):
         if imdb_id:
@@ -267,13 +273,73 @@ class TraktInstance(object):
                 return
             else:
                 show_obj = show_obj[0]
-        for episode_ in self.do_query(show_obj.title, media='episode'):
-            s, e = episode_.pk
-            if episode_.show.get_key('imdb') != show_obj.get_key('imdb'):
-                continue
-            if s != season or e != episode:
-                continue
+        if season and episode:
+            episode_ = Trakt['shows'].episode(show_obj.get_key('imdb'),
+                                              season=season, episode=episode)
             with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
                 items = {'episodes': [episode_.to_dict()]}
                 print(episode_)
                 return Trakt['sync/history'].add(items=items)
+        elif season:
+            with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+                episodes = []
+                for episode_ in Trakt['shows'].season(show_obj.get_key('imdb'), season=season):
+                    episodes.append(episode_.to_dict())
+                items = {'episodes': episodes}
+                print(episodes)
+                return Trakt['sync/history'].add(items=items)
+
+    def get_calendar(self):
+        with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            result = Trakt['calendars/my/*'].get(media='shows', pagination=True)
+            return result
+
+
+def trakt_parse():
+    parser = argparse.ArgumentParser(description='find_new_episodes script')
+    parser.add_argument('command', nargs='*', help=help_text)
+    args = parser.parse_args()
+
+    _command = 'list'
+    _args = []
+
+    if hasattr(args, 'command'):
+        for arg in args.command:
+            if arg in list_of_commands:
+                _command = arg
+            else:
+                _args.append(arg)
+
+    ti_ = TraktInstance()
+
+    if _command == 'list':
+        if len(_args) == 0:
+            print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
+        elif _args[0] == 'watchlist':
+            print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
+        elif _args[0] == 'watched':
+            if len(_args) > 1:
+                print('\n'.join(
+                    '%s : %s' % (k, v)
+                    for k, v in sorted(
+                        ti_.get_watched_shows(imdb_id=_args[1])[_args[1]].items())))
+            else:
+                print('\n'.join(
+                    '%s : %s %s' % (
+                        k, [x['title'] for x in v.values()][0], len(v)
+                    ) for k, v in ti_.get_watched_shows().items()))
+    elif _command == 'search':
+        print(ti_.do_query(_args[0]))
+    elif _command == 'add':
+        if _args[0] == 'watched':
+            season, episode = _args[2], None
+            if len(_args) > 3:
+                episode = _args[3]
+            print(ti_.do_lookup(imdb_id=_args[1]), season, episode)
+            print(ti_.add_episode_to_watched(imdb_id=_args[1], season=season, episode=episode))
+        elif _args[0] == 'watchlist':
+            print(ti_.add_show_to_watchlist(imdb_id=_args[1]))
+    elif _command == 'cal':
+        print('\n'.join(
+            ['%s %s %s' % (x.show.title, x.pk, x.first_aired.date().isoformat())
+             for x in ti_.get_calendar()]))
