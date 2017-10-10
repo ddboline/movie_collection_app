@@ -310,9 +310,7 @@ def trakt_parse():
     ti_ = TraktInstance()
 
     if _command == 'list':
-        if len(_args) == 0:
-            print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
-        elif _args[0] == 'watchlist':
+        if len(_args) == 0 or _args[0] == 'watchlist':
             print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
         elif _args[0] == 'watched':
             if len(_args) > 1:
