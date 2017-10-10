@@ -87,7 +87,7 @@ def find_upcoming_episodes(df=None, do_update=False):
         season, episode = mq_.get_season_episode_from_name(fname, show)
         if season == -1 or episode == -1:
             continue
-        imdb_url = imdb_show_map[show]
+        imdb_url = mq_.imdb_ratings[show]['link']
         max_s = max_season.get(imdb_url, -1)
         current_shows.add(imdb_url)
         max_season[imdb_url] = max(max_s, season)
@@ -221,9 +221,11 @@ def find_new_episodes(search=(), do_update=False):
                 mq_.get_imdb_episode_ratings(show, season)
         for season, episode in sorted(mq_.imdb_episode_ratings[show]):
             row = mq_.imdb_episode_ratings[show][(season, episode)]
-            if season < max_s or season not in current_seasons[imdb_url]:
+            if season < max_s:
                 continue
-            if episode <= max_episode[imdb_url][season]:
+            if episode <= max_episode[imdb_url].get(season, -1):
+                continue
+            if not search and row['airdate'] < (maxdate - datetime.timedelta(days=10)):
                 continue
             if row['airdate'] > maxdate:
                 continue

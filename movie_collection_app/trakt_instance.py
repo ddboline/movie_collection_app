@@ -7,15 +7,13 @@ Created on Thu Oct  5 07:43:59 2017
 """
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
-import re
 import json
 from threading import Condition
 
 from trakt import Trakt
 
 from movie_collection_app.movie_collection import MovieCollection
-from movie_collection_app.parse_imdb import (
-    parse_imdb_mobile_tv, parse_imdb, parse_imdb_episode_list)
+from movie_collection_app.parse_imdb import parse_imdb_mobile_tv, parse_imdb
 
 
 def read_credentials():
@@ -106,12 +104,14 @@ class TraktInstance(object):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
             return Trakt['sync/watchlist'].episodes(pagination=True)
 
-    def get_watched_shows(self):
+    def get_watched_shows(self, imdb_id=None):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
             results = {}
             for show in Trakt['sync/watched'].shows(pagination=True).values():
                 title = show.title
                 imdb_url = show.get_key('imdb')
+                if imdb_id is not None and imdb_url != imdb_id:
+                    continue
                 episodes = {}
                 for (season, epi), episode in show.episodes():
                     episodes[(season, epi)] = {
@@ -233,3 +233,47 @@ class TraktInstance(object):
         mq_.con.execute("insert into imdb_ratings (%s) values ('%s')" %
                         (', '.join(keys), "', '".join('%s' % x for x in vals)))
         return mq_.imdb_ratings[show]
+
+    def do_lookup(self, imdb_id):
+        with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            return Trakt['search'].lookup(id=imdb_id, service='imdb')
+
+    def do_query(self, show, media='show'):
+        with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            return Trakt['search'].query(show.replace('_', ' '), media=media, pagination=True)
+
+    def add_show_to_watchlist(self, show=None, imdb_id=None):
+        if imdb_id:
+            show_obj = self.do_lookup(imdb_id)
+        elif show:
+            show_obj = self.do_query(show)
+        if isinstance(show_obj, list):
+            if len(show_obj) < 1:
+                return
+            else:
+                show_obj = show_obj[0]
+        with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            items = {'shows': [show_obj.to_dict()]}
+            print(show_obj)
+            return Trakt['sync/watchlist'].add(items=items)
+
+    def add_episode_to_watched(self, show=None, imdb_id=None, season=None, episode=None):
+        if imdb_id:
+            show_obj = self.do_lookup(imdb_id)
+        elif show:
+            show_obj = self.do_query(show)
+        if isinstance(show_obj, list):
+            if len(show_obj) < 1:
+                return
+            else:
+                show_obj = show_obj[0]
+        for episode_ in self.do_query(show_obj.title, media='episode'):
+            s, e = episode_.pk
+            if episode_.show.get_key('imdb') != show_obj.get_key('imdb'):
+                continue
+            if s != season or e != episode:
+                continue
+            with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+                items = {'episodes': [episode_.to_dict()]}
+                print(episode_)
+                return Trakt['sync/history'].add(items=items)
