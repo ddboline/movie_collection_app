@@ -40,9 +40,7 @@ class TraktInstance(object):
         self.client_id = credentials['client_id']
         self.client_secret = credentials['client_secret']
         self.trakt = Trakt.configuration.defaults.client(
-            id=self.client_id,
-            secret=self.client_secret
-        )
+            id=self.client_id, secret=self.client_secret)
 
         self.is_authenticating = Condition()
 
@@ -64,10 +62,8 @@ class TraktInstance(object):
         # Request new device code
         code = Trakt['oauth/device'].code()
 
-        print('Enter the code "%s" at %s to authenticate your account' % (
-            code.get('user_code'),
-            code.get('verification_url')
-        ))
+        print('Enter the code "%s" at %s to authenticate your account' %
+              (code.get('user_code'), code.get('verification_url')))
 
         # Construct device authentication poller
         poller = Trakt['oauth/device'].poll(**code)\
@@ -97,8 +93,9 @@ class TraktInstance(object):
     def get_watchlist_shows(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
             return {
-                x.get_key('imdb'):
-                    x for x in Trakt['sync/watchlist'].shows(pagination=True).values()}
+                x.get_key('imdb'): x
+                for x in Trakt['sync/watchlist'].shows(pagination=True).values()
+            }
 
     def get_watchlist_seasons(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
@@ -274,8 +271,8 @@ class TraktInstance(object):
             else:
                 show_obj = show_obj[0]
         if season and episode:
-            episode_ = Trakt['shows'].episode(show_obj.get_key('imdb'),
-                                              season=season, episode=episode)
+            episode_ = Trakt['shows'].episode(
+                show_obj.get_key('imdb'), season=season, episode=episode)
             with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
                 items = {'episodes': [episode_.to_dict()]}
                 print(episode_)
@@ -319,15 +316,12 @@ def trakt_parse():
             print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
         elif _args[0] == 'watched':
             if len(_args) > 1:
-                print('\n'.join(
-                    '%s : %s' % (k, v)
-                    for k, v in sorted(
-                        ti_.get_watched_shows(imdb_id=_args[1])[_args[1]].items())))
+                print('\n'.join('%s : %s' % (k, v)
+                                for k, v in sorted(
+                                    ti_.get_watched_shows(imdb_id=_args[1])[_args[1]].items())))
             else:
-                print('\n'.join(
-                    '%s : %s %s' % (
-                        k, [x['title'] for x in v.values()][0], len(v)
-                    ) for k, v in ti_.get_watched_shows().items()))
+                print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
+                                for k, v in ti_.get_watched_shows().items()))
     elif _command == 'search':
         print(ti_.do_query(_args[0]))
     elif _command == 'add':
@@ -340,6 +334,7 @@ def trakt_parse():
         elif _args[0] == 'watchlist':
             print(ti_.add_show_to_watchlist(imdb_id=_args[1]))
     elif _command == 'cal':
-        print('\n'.join(
-            ['%s %s %s' % (x.show.title, x.pk, x.first_aired.date().isoformat())
-             for x in ti_.get_calendar()]))
+        print('\n'.join([
+            '%s %s %s' % (x.show.title, x.pk, x.first_aired.date().isoformat())
+            for x in ti_.get_calendar()
+        ]))

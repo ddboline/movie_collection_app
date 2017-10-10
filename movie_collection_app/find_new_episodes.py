@@ -20,9 +20,8 @@ list_of_commands = ('list', 'search', 'wl', 'tv')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 watchlist = {
     '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
-    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver',
-    'outlander_2014', 'silicon_valley', 'the_last_panthers', 'the_night_manager',
-    'fear_the_walking_dead', 'unreal'
+    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
+    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'
 }
 
 pg_db = '%s:5432/movie_queue' % POSTGRESTRING
@@ -234,8 +233,9 @@ def find_new_episodes(search=(), do_update=False):
             eptitle = row['eptitle']
             eprating = row['rating']
             airdate = row['airdate']
-            output[(airdate, show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (
-                        show, title, eptitle, season, episode, eprating, rating, airdate)
+            output[(airdate,
+                    show)] = '%s %s %s %d %d %0.2f/%0.2f %s' % (show, title, eptitle, season,
+                                                                episode, eprating, rating, airdate)
     for key in sorted(output):
         val = output[key]
         print(val)
@@ -290,6 +290,7 @@ def find_new_episodes_watchlist(search=(), do_update=False):
             if season in max_episode[show] \
                     and episode <= max_episode[show][season]:
                 continue
+
 
 #            if row['airdate'] > datetime.date.today():
 #                continue

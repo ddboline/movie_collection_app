@@ -15,19 +15,12 @@ from movie_collection_app.util import (walk_wrapper, read_time, print_h_m_s)
 file_formats = ('mp4', 'mkv', 'avi')
 list_of_commands = ('parse', 'list', 'time', 'mov')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-movie_dirs = (
-    '/media/dileptonnas/Documents/movies',
-    '/media/dileptonnas/Documents/television',
-    '/media/dileptonnas/television/unwatched',
-    '/media/sabrent2000/television/unwatched',
-    '/media/sabrent2000/Documents/movies',
-    '/media/sabrent2000/Documents/television',
-    '/media/western2000/television/unwatched',
-    '/media/western2000/Documents/movies',
-    '/media/western2000/Documents/television',
-    '/media/seagate4000/television/unwatched',
-    '/media/seagate4000/Documents/movies',
-    '/media/seagate4000/Documents/television')
+movie_dirs = ('/media/dileptonnas/Documents/movies', '/media/dileptonnas/Documents/television',
+              '/media/dileptonnas/television/unwatched', '/media/sabrent2000/television/unwatched',
+              '/media/sabrent2000/Documents/movies', '/media/sabrent2000/Documents/television',
+              '/media/western2000/television/unwatched', '/media/western2000/Documents/movies',
+              '/media/western2000/Documents/television', '/media/seagate4000/television/unwatched',
+              '/media/seagate4000/Documents/movies', '/media/seagate4000/Documents/television')
 
 
 def make_collection():
@@ -73,6 +66,7 @@ def make_collection():
         if rating_obj:
             print('show %s not on disk: %s %s' % (show, mq_.imdb_ratings[show]['rating'],
                                                   mq_.imdb_ratings[show]['title']))
+
 
 #            mq_.rm_entry_from_ratings(show)
 

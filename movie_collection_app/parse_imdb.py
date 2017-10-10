@@ -55,8 +55,8 @@ def get_available_dates_channels(zip_code=None, tv_prov=None):
             available_dates = map(lambda x: parse(x).date(), available_dates)
         if hasattr(s, 'attrs') and 'name' in s.attrs and s.attrs['name'] == 'channel':
             available_channels = [
-                o.attrs['value'].strip('#') for o in s.find_all('option')
-                if '#' in o.attrs['value']]
+                o.attrs['value'].strip('#') for o in s.find_all('option') if '#' in o.attrs['value']
+            ]
     return available_dates, available_channels
 
 
@@ -74,7 +74,8 @@ def get_time_program_list(date=datetime.date.today(), channel='AMC'):
                         start_time = td.text
                         try:
                             start_time_url = [
-                                int(a.attrs['href'].split('/')[3]) for a in td.find_all('a')][0]
+                                int(a.attrs['href'].split('/')[3]) for a in td.find_all('a')
+                            ][0]
                         except ValueError:
                             start_time_url = sum(
                                 int(x) * 100**i
@@ -99,7 +100,8 @@ def get_time_program_list(date=datetime.date.today(), channel='AMC'):
                             'imdb_title': imdb_title,
                             'imdb_url': imdb_url,
                             'ep_title': ep_title,
-                            'ep_url': ep_url}
+                            'ep_url': ep_url
+                        }
 
 
 def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=None):
@@ -112,7 +114,8 @@ def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=N
         if 'tv_channel' in div.attrs.get('class', {}):
             channel_name = [
                 a.attrs['name'] for x in div.find_all('div')
-                if 'tv_callsign' in x.attrs.get('class', {}) for a in x.find_all('a')][0]
+                if 'tv_callsign' in x.attrs.get('class', {}) for a in x.find_all('a')
+            ][0]
             if channels is not None and channel_name not in channels:
                 continue
 
@@ -141,7 +144,8 @@ def get_time_from_grid(date=datetime.date.today(), start_time='0000', channels=N
                     'imdb_title': imdb_title,
                     'imdb_url': imdb_url,
                     'ep_title': '',
-                    'ep_url': ''}
+                    'ep_url': ''
+                }
         elif 'tv_phantom' in div.attrs.get('class', {}):
             id_ = div.table.attrs.get('id', '')
             if id_ in shows:
@@ -189,8 +193,8 @@ def parse_imdb_tv_listings(additional_channels=additional_channels):
         dataframes.append(df)
     df = pd.concat(dataframes)
     df = df[[
-        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
-        'ep_url']].reset_index(drop=True)
+        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title', 'ep_url'
+    ]].reset_index(drop=True)
     return df
 
 
@@ -217,8 +221,8 @@ def get_bad_channels(available_dates, bad_channels):
         dataframes.append(tmp_df)
     df_ = pd.concat(dataframes)
     return df_[[
-        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title',
-        'ep_url']]
+        'channel', 'start_time', 'end_time', 'title', 'imdb_title', 'imdb_url', 'ep_title', 'ep_url'
+    ]]
 
 
 def parse_imdb(title='the bachelor'):

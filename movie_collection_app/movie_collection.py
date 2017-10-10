@@ -227,14 +227,14 @@ class MovieCollection(object):
                 self.con.execute("update current_queue set idx = '%d' where path = '%s'" %
                                  (position, fname))
                 self.con.execute("update current_queue set idx = idx + 1 where "
-                                 "idx >= %d and idx < %d and path != '%s'" %
-                                 (position, curpos, fname))
+                                 "idx >= %d and idx < %d and path != '%s'" % (position, curpos,
+                                                                              fname))
             elif position != curpos:
-                self.con.execute("update current_queue set idx = %d where path = '%s'" %
-                                 (position, fname))
+                self.con.execute("update current_queue set idx = %d where path = '%s'" % (position,
+                                                                                          fname))
                 self.con.execute("update current_queue set idx = idx - 1 where "
-                                 "idx > %d and idx <= %d and path != '%s'" %
-                                 (curpos, position, fname))
+                                 "idx > %d and idx <= %d and path != '%s'" % (curpos, position,
+                                                                              fname))
                 print(position, fname)
         else:
             show, link, _, _ = self.get_season_episode_rating_from_name(fname)
@@ -317,8 +317,8 @@ class MovieCollection(object):
             self.con.execute("delete from imdb_episodes where show='%s'" % show)
             self.imdb_episode_ratings.pop(show)
         elif episode == -1:
-            self.con.execute("delete from imdb_episodes where show='%s' and season=%d" %
-                             (show, season))
+            self.con.execute("delete from imdb_episodes where show='%s' and season=%d" % (show,
+                                                                                          season))
             for (season_, episode_) in self.imdb_episode_ratings[show]:
                 if season_ == season:
                     self.imdb_episode_ratings[show].pop((season_, episode_))
@@ -326,8 +326,8 @@ class MovieCollection(object):
             if (season, episode) not in self.imdb_episode_ratings[show]:
                 return
             self.con.execute("delete from imdb_episodes "
-                             "where show='%s' and season=%d and episode=%d" %
-                             (show, season, episode))
+                             "where show='%s' and season=%d and episode=%d" % (show, season,
+                                                                               episode))
             self.imdb_episode_ratings[show].pop((season, episode))
 
     def show_entry_by_name(self, name):
