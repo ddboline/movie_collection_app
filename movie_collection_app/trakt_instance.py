@@ -34,13 +34,18 @@ def read_credentials():
 class TraktInstance(object):
     auth_token = '%s/.trakt/auth_token.json' % os.getenv('HOME')
 
-    def __init__(self, username='ddboline'):
+    def __init__(self, username='ddboline', mq_=None):
         credentials = read_credentials()
         self.username = username
         self.client_id = credentials['client_id']
         self.client_secret = credentials['client_secret']
         self.trakt = Trakt.configuration.defaults.client(
             id=self.client_id, secret=self.client_secret)
+
+        if mq_ is not None:
+            self.mq_ = mq_
+        else:
+            self.mq_ = MovieCollection()
 
         self.is_authenticating = Condition()
 
@@ -194,10 +199,10 @@ class TraktInstance(object):
             self.authorization = json.load(f)
 
     def get_imdb_rating(self, show, imdb_url, type_='tv'):
-        mq_ = MovieCollection()
+        
 
-        if show in mq_.imdb_ratings:
-            return mq_.imdb_ratings[show]
+        if show in self.mq_.imdb_ratings:
+            return self.mq_.imdb_ratings[show]
         show_ = show.replace('_', ' ')
         title = None
         if type_ == 'tv':
@@ -219,7 +224,7 @@ class TraktInstance(object):
             }
         title = title.replace("'", '')
         print(show, title, imdb_link, rating)
-        idx = list(mq_.con.execute("select max(index) from imdb_ratings"))
+        idx = list(self.mq_.con.execute("select max(index) from imdb_ratings"))
         idx = idx[0][0]
         row_dict = {
             'show': show,
@@ -229,11 +234,11 @@ class TraktInstance(object):
             'istv': type_ == 'tv',
             'index': idx + 1
         }
-        mq_.imdb_ratings[show] = row_dict
+        self.mq_.imdb_ratings[show] = row_dict
         keys, vals = zip(*row_dict.items())
-        mq_.con.execute("insert into imdb_ratings (%s) values ('%s')" %
+        self.mq_.con.execute("insert into imdb_ratings (%s) values ('%s')" %
                         (', '.join(keys), "', '".join('%s' % x for x in vals)))
-        return mq_.imdb_ratings[show]
+        return self.mq_.imdb_ratings[show]
 
     def do_lookup(self, imdb_id):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
@@ -241,9 +246,14 @@ class TraktInstance(object):
 
     def do_query(self, show, media='show'):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
-            shows = Trakt['search'].query(show.replace('_', ' '), media=media, pagination=True)
-            shows = {s.get_key('imdb'): s for s in shows}
-            return shows
+            if show in self.mq_.imdb_ratings:
+                imdb = self.mq_.imdb_ratings[show]['link']
+                show = self.do_lookup(imdb_id=imdb)
+                return {imdb: show}
+            else:
+                shows = Trakt['search'].query(show.replace('_', ' '), media=media, pagination=True)
+                shows = {s.get_key('imdb'): s for s in shows}
+                return shows
 
     def add_show_to_watchlist(self, show=None, imdb_id=None):
         if imdb_id:

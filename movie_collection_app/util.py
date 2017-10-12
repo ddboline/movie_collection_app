@@ -16,8 +16,8 @@ HOSTNAME = os.uname()[1]
 REMOTEHOST = 'ddbolineathome.mooo.com'
 POSTGRESTRING = 'postgresql://ddboline:BQGIvkKFZPejrKvX@localhost'
 
-dailies = ('the_late_show_with_stephen_colbert', 'the_daily_show', 'the_nightly_show',
-           'at_midnight')
+dailies = {'the_late_show_with_stephen_colbert', 'the_daily_show', 'the_nightly_show',
+           'at_midnight'}
 
 
 def play_file(fname, yad=False):
