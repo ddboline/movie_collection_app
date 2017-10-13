@@ -365,32 +365,41 @@ def trakt_parse():
             print('\n'.join('%s : %s' % (k, v) for k, v in ti_.get_watchlist_shows().items()))
         elif _args[0] == 'watched':
             if len(_args) > 1:
+                imdb = _args[1]
+                if _args[1] in ti_.mq_.imdb_ratings:
+                    imdb = ti_.mq_.imdb_ratings
                 print('\n'.join('%s : %s' % (k, v)
                                 for k, v in sorted(
-                                    ti_.get_watched_shows(imdb_id=_args[1])[_args[1]].items())))
+                                    ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
             else:
                 print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
                                 for k, v in ti_.get_watched_shows().items()))
     elif _command == 'search':
         print('\n'.join(['%s %s' % (k, v) for k, v in ti_.do_query(_args[0]).items()]))
     elif _command == 'add':
+        imdb = _args[1]
+        if _args[1] in ti_.mq_.imdb_ratings:
+            imdb = ti_.mq_.imdb_ratings
         if _args[0] == 'watched':
             season, episode = _args[2], None
             if len(_args) > 3:
                 episode = _args[3]
-            print(ti_.do_lookup(imdb_id=_args[1]), season, episode)
-            print(ti_.add_episode_to_watched(imdb_id=_args[1], season=season, episode=episode))
+            print(ti_.do_lookup(imdb_id=imdb), season, episode)
+            print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
         elif _args[0] == 'watchlist':
-            print(ti_.add_show_to_watchlist(imdb_id=_args[1]))
+            print(ti_.add_show_to_watchlist(imdb_id=imdb))
     elif _command == 'rm':
+        imdb = _args[1]
+        if _args[1] in ti_.mq_.imdb_ratings:
+            imdb = ti_.mq_.imdb_ratings
         if _args[0] == 'watched':
             season, episode = _args[2], None
             if len(_args) > 3:
                 episode = _args[3]
-            print(ti_.do_lookup(imdb_id=_args[1]), season, episode)
-            print(ti_.remove_episode_to_watched(imdb_id=_args[1], season=season, episode=episode))
+            print(ti_.do_lookup(imdb_id=imdb), season, episode)
+            print(ti_.remove_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
         elif _args[0] == 'watchlist':
-            print(ti_.remove_show_to_watchlist(imdb_id=_args[1]))
+            print(ti_.remove_show_to_watchlist(imdb_id=imdb))
     elif _command == 'cal':
         print('\n'.join([
             '%s %s %s' % (x.show.title, x.pk, x.first_aired.date().isoformat())
