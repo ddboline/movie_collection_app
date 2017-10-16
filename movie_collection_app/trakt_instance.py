@@ -366,8 +366,8 @@ def trakt_parse():
         elif _args[0] == 'watched':
             if len(_args) > 1:
                 imdb = _args[1]
-                if _args[1] in ti_.mq_.imdb_ratings:
-                    imdb = ti_.mq_.imdb_ratings
+                if imdb in ti_.mq_.imdb_ratings:
+                    imdb = ti_.mq_.imdb_ratings[imdb]['link']
                 print('\n'.join('%s : %s' % (k, v)
                                 for k, v in sorted(
                                     ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
@@ -378,8 +378,8 @@ def trakt_parse():
         print('\n'.join(['%s %s' % (k, v) for k, v in ti_.do_query(_args[0]).items()]))
     elif _command == 'add':
         imdb = _args[1]
-        if _args[1] in ti_.mq_.imdb_ratings:
-            imdb = ti_.mq_.imdb_ratings
+        if imdb in ti_.mq_.imdb_ratings:
+            imdb = ti_.mq_.imdb_ratings[imdb]['link']
         if _args[0] == 'watched':
             season, episode = _args[2], None
             if len(_args) > 3:
@@ -390,8 +390,8 @@ def trakt_parse():
             print(ti_.add_show_to_watchlist(imdb_id=imdb))
     elif _command == 'rm':
         imdb = _args[1]
-        if _args[1] in ti_.mq_.imdb_ratings:
-            imdb = ti_.mq_.imdb_ratings
+        if imdb in ti_.mq_.imdb_ratings:
+            imdb = ti_.mq_.imdb_ratings[imdb]['link']
         if _args[0] == 'watched':
             season, episode = _args[2], None
             if len(_args) > 3:

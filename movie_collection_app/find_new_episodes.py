@@ -18,11 +18,6 @@ from movie_collection_app.util import POSTGRESTRING
 
 list_of_commands = ('list', 'search', 'wl', 'tv')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
-watchlist = {
-    '12_monkeys', 'adventure_time', 'archer', 'homeland', 'game_of_thrones', 'lost_girl',
-    'mr_robot', 'rick_and_morty', 'vikings', 'last_week_tonight_with_john_oliver', 'outlander_2014',
-    'silicon_valley', 'the_last_panthers', 'the_night_manager', 'fear_the_walking_dead', 'unreal'
-}
 
 pg_db = '%s:5432/movie_queue' % POSTGRESTRING
 engine = create_engine(pg_db)
@@ -134,7 +129,7 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(), do_update=False):
+def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
@@ -210,6 +205,10 @@ def find_new_episodes(search=(), do_update=False):
         max_e = max_episode[imdb_url][max_s]
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
+        if not hulu and mq_.imdb_ratings[show]['source'] == 'hulu':
+            continue
+        if not netflix and mq_.imdb_ratings[show]['source'] == 'netflix':
+            continue
         if imdb_url == '':
             continue
         if do_update:
@@ -241,74 +240,6 @@ def find_new_episodes(search=(), do_update=False):
         print(val)
 
 
-def find_new_episodes_watchlist(search=(), do_update=False):
-    output = {}
-    mq_ = MovieCollection()
-
-    current_shows = set()
-    max_season = {}
-    max_episode = defaultdict(dict)
-    current_seasons = defaultdict(set)
-    current_episodes = defaultdict(set)
-    for fname, row in mq_.movie_collection.items():
-        show = row['show']
-        cond0 = (show in watchlist)
-        cond1 = all(x in show for x in search)
-        if search and not cond1:
-            continue
-        if not search and not cond0:
-            continue
-        fname = row['path']
-        season, episode = mq_.get_season_episode_from_name(fname, show)
-        if season == -1 or episode == -1:
-            continue
-        max_s = max_season.get(show, -1)
-        max_e = max_episode.get(show, {}).get(season, -1)
-        current_shows.add(show)
-        max_season[show] = max(max_s, season)
-        max_episode[show][season] = max(max_e, episode)
-        current_seasons[show].add(season)
-        current_episodes[show].add((season, episode))
-
-    for show in sorted(current_shows):
-        max_s = max_season[show]
-        max_e = max_episode[show][max_s]
-        imdb_url = mq_.imdb_ratings[show]['link']
-        title = mq_.imdb_ratings[show]['title']
-        rating = mq_.imdb_ratings[show]['rating']
-        if do_update:
-            for item in parse_imdb_episode_list(imdb_url, season=-1):
-                season = item[0]
-                if season < max_s:
-                    continue
-                mq_.get_imdb_episode_ratings(show, season)
-        for season, episode in sorted(
-                mq_.imdb_episode_ratings[show], key=lambda x: x[0] * 100 + x[1]):
-            row = mq_.imdb_episode_ratings[show][(season, episode)]
-            if season < max_s:
-                continue
-            if season in max_episode[show] \
-                    and episode <= max_episode[show][season]:
-                continue
-
-
-#            if row['airdate'] > datetime.date.today():
-#                continue
-            if (season, episode) in current_episodes:
-                continue
-            eptitle = row['eptitle']
-            eprating = row['rating']
-            airdate = row['airdate']
-            output[(airdate,
-                    show)] = '%s %s %d %d %s %0.2f/%0.2f %s' % (show, title, season, episode,
-                                                                eptitle, eprating, rating, airdate)
-    for key in sorted(output):
-        val = output[key]
-        print(val)
-
-    return
-
-
 def find_new_episodes_parse():
     parser = argparse.ArgumentParser(description='find_new_episodes script')
     parser.add_argument('command', nargs='*', help=help_text)
@@ -316,6 +247,8 @@ def find_new_episodes_parse():
 
     _command = 'list'
     do_update = False
+    do_hulu = False
+    do_netflix = False
     _args = []
 
     if hasattr(args, 'command'):
@@ -324,12 +257,14 @@ def find_new_episodes_parse():
                 _command = arg
             elif arg == 'update':
                 do_update = True
+            elif arg == 'hulu':
+                do_hulu = True
+            elif arg == 'netflix':
+                do_netflix = True
             else:
                 _args.append(arg)
 
-    if _command == 'wl':
-        find_new_episodes_watchlist(_args, do_update)
-    elif _command == 'tv':
+    if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(_args, do_update)
+        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix)

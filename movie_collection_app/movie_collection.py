@@ -17,8 +17,8 @@ from movie_collection_app.parse_imdb import (parse_imdb_mobile_tv, parse_imdb,
                                              parse_imdb_episode_list)
 from movie_collection_app.util import (POSTGRESTRING, HOSTNAME, extract_show,
                                        get_season_episode_from_name, remove_remote_file,
-                                       has_been_downloaded, get_remote_file, read_time, print_h_m_s,
-                                       play_file, get_dailies_airdate, dailies)
+                                       has_been_downloaded, get_remote_file, read_time,
+                                       print_h_m_s, play_file, get_dailies_airdate, dailies)
 
 
 class MovieCollection(object):
