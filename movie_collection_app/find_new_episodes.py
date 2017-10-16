@@ -129,7 +129,7 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False):
+def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, amazon=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
@@ -209,6 +209,8 @@ def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False):
             continue
         if not netflix and mq_.imdb_ratings[show]['source'] == 'netflix':
             continue
+        if not amazon and mq_.imdb_ratings[show]['source'] == 'amazon':
+            continue
         if imdb_url == '':
             continue
         if do_update:
@@ -249,6 +251,7 @@ def find_new_episodes_parse():
     do_update = False
     do_hulu = False
     do_netflix = False
+    do_amazon = False
     _args = []
 
     if hasattr(args, 'command'):
@@ -261,10 +264,12 @@ def find_new_episodes_parse():
                 do_hulu = True
             elif arg == 'netflix':
                 do_netflix = True
+            elif arg == 'amazon':
+                do_amazon = True
             else:
                 _args.append(arg)
 
     if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix)
+        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon)

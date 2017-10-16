@@ -199,7 +199,6 @@ class TraktInstance(object):
             self.authorization = json.load(f)
 
     def get_imdb_rating(self, show, imdb_url, type_='tv'):
-        
 
         if show in self.mq_.imdb_ratings:
             return self.mq_.imdb_ratings[show]
@@ -237,7 +236,7 @@ class TraktInstance(object):
         self.mq_.imdb_ratings[show] = row_dict
         keys, vals = zip(*row_dict.items())
         self.mq_.con.execute("insert into imdb_ratings (%s) values ('%s')" %
-                        (', '.join(keys), "', '".join('%s' % x for x in vals)))
+                             (', '.join(keys), "', '".join('%s' % x for x in vals)))
         return self.mq_.imdb_ratings[show]
 
     def do_lookup(self, imdb_id):
@@ -368,9 +367,13 @@ def trakt_parse():
                 imdb = _args[1]
                 if imdb in ti_.mq_.imdb_ratings:
                     imdb = ti_.mq_.imdb_ratings[imdb]['link']
-                print('\n'.join('%s : %s' % (k, v)
-                                for k, v in sorted(
-                                    ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
+                if len(_args) > 2:
+                    print('\n'.join('%s : %s' % (
+                        k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())
+                                    if v['season'] == int(_args[2])))
+                else:
+                    print('\n'.join('%s : %s' % (
+                        k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
             else:
                 print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
                                 for k, v in ti_.get_watched_shows().items()))
