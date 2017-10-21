@@ -282,15 +282,18 @@ class TraktInstance(object):
         if season and episode:
             episode_ = Trakt['shows'].episode(
                 show_obj.get_key('imdb'), season=season, episode=episode)
+            if not episode_:
+                return False
             with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
                 items = {'episodes': [episode_.to_dict()]}
                 print(episode_)
                 return Trakt['sync/history'].add(items=items)
         elif season:
             with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
-                episodes = []
-                for episode_ in Trakt['shows'].season(show_obj.get_key('imdb'), season=season):
-                    episodes.append(episode_.to_dict())
+                episodes = Trakt['shows'].season(show_obj.get_key('imdb'), season=season)
+                if not episodes:
+                    return False
+                episodes = [e.to_dict() for e in episodes]
                 items = {'episodes': episodes}
                 print(episodes)
                 return Trakt['sync/history'].add(items=items)
