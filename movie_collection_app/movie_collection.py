@@ -80,6 +80,9 @@ class MovieCollection(object):
 
     def get_imdb_rating(self, fn_):
         show, type_ = extract_show(fn_)
+        self._get_imdb_rating(show)
+
+    def _get_imdb_rating(self, show):
         if show in self.imdb_ratings:
             return self.imdb_ratings[show]
         show_ = show.replace('_', ' ')

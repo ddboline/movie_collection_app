@@ -49,6 +49,8 @@ def get_available_dates_channels(zip_code=None, tv_prov=None):
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
     soup = BeautifulSoup(resp.text, 'html.parser')
+    available_dates = []
+    available_channels = []
     for s in soup.find_all('select'):
         if hasattr(s, 'attrs') and 'name' in s.attrs and s.attrs['name'] == 'start_date':
             available_dates = [o.attrs['value'] for o in s.find_all('option')]
