@@ -129,12 +129,7 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(),
-                      do_update=False,
-                      hulu=False,
-                      netflix=False,
-                      amazon=False,
-                      shows=False):
+def find_new_episodes(search=(), do_update=False, hulu=False, source=None, shows=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
@@ -221,11 +216,9 @@ def find_new_episodes(search=(),
             output[show] = '%s %s %s %s %s %s' % (show, title, max_s, max_e, str(max_airdate),
                                                   rating)
             continue
-        if not hulu and mq_.imdb_ratings[show]['source'] == 'hulu':
+        if not source and mq_.imdb_ratings[show]['source'] in ('hulu', 'netflix', 'amazon'):
             continue
-        if not netflix and mq_.imdb_ratings[show]['source'] == 'netflix':
-            continue
-        if not amazon and mq_.imdb_ratings[show]['source'] == 'amazon':
+        if source in ('hulu', 'netflix', 'amazon') and mq_.imdb_ratings[show]['source'] != source:
             continue
         if imdb_url == '':
             continue
@@ -268,8 +261,7 @@ def find_new_episodes_parse():
     _command = 'list'
     do_update = False
     do_hulu = False
-    do_netflix = False
-    do_amazon = False
+    do_source = False
     do_shows = False
     _args = []
 
@@ -279,12 +271,8 @@ def find_new_episodes_parse():
                 _command = arg
             elif arg == 'update':
                 do_update = True
-            elif arg == 'hulu':
-                do_hulu = True
-            elif arg == 'netflix':
-                do_netflix = True
-            elif arg == 'amazon':
-                do_amazon = True
+            elif arg in ('hulu', 'netflix', 'amazon'):
+                do_source = arg
             elif arg == 'shows':
                 do_shows = True
             else:
@@ -293,5 +281,4 @@ def find_new_episodes_parse():
     if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(
-            _args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon, shows=do_shows)
+        find_new_episodes(_args, do_update, source=do_source, shows=do_shows)
