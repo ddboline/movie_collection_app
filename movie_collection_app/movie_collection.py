@@ -120,6 +120,15 @@ class MovieCollection(object):
                          (', '.join(keys), "', '".join('%s' % x for x in vals)))
         return self.imdb_ratings[show]
 
+    def update_imdb_source(self, show, source):
+        if show not in self.imdb_ratings:
+            return False
+        if source not in ('netflix', 'hulu', 'amazon'):
+            return False
+        self.con.execute("update imdb_ratings set source='%s' where show = '%s'" % (source, show))
+        self.read_queue_from_db()
+        return True
+
     def get_imdb_episode_ratings(self, show=None, season=None):
         """ dump all episode ratings for a given show, store in db """
         for show_ in self.imdb_ratings:

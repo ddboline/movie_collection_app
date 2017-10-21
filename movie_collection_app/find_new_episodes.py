@@ -129,7 +129,7 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, amazon=False):
+def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, amazon=False, shows=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
@@ -205,6 +205,17 @@ def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, ama
         max_e = max_episode[imdb_url][max_s]
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
+        
+        max_airdate = datetime.date(1950, 1, 1)
+        
+        if mq_.imdb_episode_ratings[show]:
+            max_s, max_e = max(mq_.imdb_episode_ratings[show])
+            max_airdate = mq_.imdb_episode_ratings[show][(max_s, max_e)]['airdate']
+            
+
+        if shows:
+            output[show] = '%s %s %s %s %s %s' % (show, title, max_s, max_e, str(max_airdate), rating)
+            continue
         if not hulu and mq_.imdb_ratings[show]['source'] == 'hulu':
             continue
         if not netflix and mq_.imdb_ratings[show]['source'] == 'netflix':
@@ -214,11 +225,13 @@ def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, ama
         if imdb_url == '':
             continue
         if do_update:
-            for item in parse_imdb_episode_list(imdb_url, season=-1):
-                season = item[0]
-                if season < max_s:
-                    continue
-                mq_.get_imdb_episode_ratings(show, season)
+            if max_airdate > datetime.date(2017, 1, 1):
+                print(show, max_s, max_e)
+                for item in parse_imdb_episode_list(imdb_url, season=-1):
+                    season = item[0]
+                    if season < max_s:
+                        continue
+                    mq_.get_imdb_episode_ratings(show, season)
         for season, episode in sorted(mq_.imdb_episode_ratings[show]):
             row = mq_.imdb_episode_ratings[show][(season, episode)]
             if season < max_s:
@@ -252,6 +265,7 @@ def find_new_episodes_parse():
     do_hulu = False
     do_netflix = False
     do_amazon = False
+    do_shows = False
     _args = []
 
     if hasattr(args, 'command'):
@@ -266,10 +280,12 @@ def find_new_episodes_parse():
                 do_netflix = True
             elif arg == 'amazon':
                 do_amazon = True
+            elif arg == 'shows':
+                do_shows = True
             else:
                 _args.append(arg)
 
     if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon)
+        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon, shows=do_shows)
