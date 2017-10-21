@@ -173,8 +173,8 @@ def parse_imdb_tv_listings(additional_channels=additional_channels):
             if date < datetime.date.today():
                 continue
             print('channel %s date %s' % (channel, date))
-            last_date = (datetime.datetime.combine(date, datetime.time()) + datetime.timedelta(
-                days=-1)).date()
+            last_date = (datetime.datetime.combine(date, datetime.time()) +
+                         datetime.timedelta(days=-1)).date()
             time_prog_list = list(get_time_program_list(date, channel=channel))
             df = pd.DataFrame(time_prog_list)
             df['start_time'] = df.start_str.apply(lambda x: parse('%s %s EST' % (date, x)))

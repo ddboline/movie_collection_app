@@ -129,7 +129,12 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, amazon=False, shows=False):
+def find_new_episodes(search=(),
+                      do_update=False,
+                      hulu=False,
+                      netflix=False,
+                      amazon=False,
+                      shows=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
@@ -205,16 +210,16 @@ def find_new_episodes(search=(), do_update=False, hulu=False, netflix=False, ama
         max_e = max_episode[imdb_url][max_s]
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
-        
+
         max_airdate = datetime.date(1950, 1, 1)
-        
+
         if mq_.imdb_episode_ratings[show]:
             max_s, max_e = max(mq_.imdb_episode_ratings[show])
             max_airdate = mq_.imdb_episode_ratings[show][(max_s, max_e)]['airdate']
-            
 
         if shows:
-            output[show] = '%s %s %s %s %s %s' % (show, title, max_s, max_e, str(max_airdate), rating)
+            output[show] = '%s %s %s %s %s %s' % (show, title, max_s, max_e, str(max_airdate),
+                                                  rating)
             continue
         if not hulu and mq_.imdb_ratings[show]['source'] == 'hulu':
             continue
@@ -288,4 +293,5 @@ def find_new_episodes_parse():
     if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(_args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon, shows=do_shows)
+        find_new_episodes(
+            _args, do_update, hulu=do_hulu, netflix=do_netflix, amazon=do_amazon, shows=do_shows)

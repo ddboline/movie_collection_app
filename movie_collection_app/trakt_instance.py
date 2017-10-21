@@ -372,8 +372,9 @@ def trakt_parse():
                         k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())
                                     if v['season'] == int(_args[2])))
                 else:
-                    print('\n'.join('%s : %s' % (
-                        k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
+                    print('\n'.join(
+                        '%s : %s' % (k, v)
+                        for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())))
             else:
                 print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
                                 for k, v in ti_.get_watched_shows().items()))

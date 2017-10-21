@@ -28,7 +28,8 @@ MOVIE_DIRS = (
     '/media/western2000/television/unwatched',
     '/media/seagate4000/Documents/movies',
     '/media/seagate4000/Documents/television',
-    '/media/seagate4000/television/unwatched', )
+    '/media/seagate4000/television/unwatched',
+)
 
 HOMEDIR = os.getenv('HOME')
 COLLECTION_DIR = '%s/Dropbox/movie_collection' % HOMEDIR
