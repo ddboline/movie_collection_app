@@ -223,7 +223,7 @@ def find_new_episodes(search=(), do_update=False, hulu=False, source=None, shows
         if imdb_url == '':
             continue
         if do_update:
-            if max_airdate > datetime.date(2017, 1, 1):
+            if max_airdate > datetime.date.today() - datetime.timedelta(days=30):
                 print(show, max_s, max_e)
                 for item in parse_imdb_episode_list(imdb_url, season=-1):
                     season = item[0]
