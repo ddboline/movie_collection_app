@@ -80,7 +80,7 @@ class MovieCollection(object):
 
     def get_imdb_rating(self, fn_):
         show, type_ = extract_show(fn_)
-        self._get_imdb_rating(show, type_)
+        return self._get_imdb_rating(show, type_)
 
     def _get_imdb_rating(self, show, type_):
         if show in self.imdb_ratings:
