@@ -129,13 +129,14 @@ def find_upcoming_episodes(df=None, do_update=False):
     return df
 
 
-def find_new_episodes(search=(), do_update=False, hulu=False, source=None, shows=False):
+def find_new_episodes(search=(), do_update=False, trakt=False, source=None, shows=False):
     output = {}
     mq_ = MovieCollection()
     ti_ = TraktInstance()
 
     trakt_watchlist_shows = ti_.get_watchlist_shows()
     trakt_watched_shows = ti_.get_watched_shows()
+    trakt_cal_shows = {x.show.get_key('imdb'): x.show for x in ti_.get_calendar()}
 
     current_shows = set()
     max_season = {}
@@ -200,11 +201,25 @@ def find_new_episodes(search=(), do_update=False, hulu=False, source=None, shows
                 current_episodes[imdb_url].add((s, e))
 
     for imdb_url in sorted(current_shows):
+        if imdb_url == '':
+            continue
+
         show = imdb_show_map[imdb_url]
         max_s = max_season[imdb_url]
         max_e = max_episode[imdb_url][max_s]
         title = mq_.imdb_ratings[show]['title']
         rating = mq_.imdb_ratings[show]['rating']
+
+        if trakt and imdb_url not in trakt_cal_shows:
+            continue
+        if source in ('hulu', 'netflix', 'amazon') and mq_.imdb_ratings[show]['source'] != source:
+            continue
+        if not source and mq_.imdb_ratings[show]['source'] in ('hulu', 'netflix', 'amazon'):
+            continue
+        #if not trakt and imdb_url not in trakt_watchlist_shows:
+            #print('non trakt', show)
+        #else:
+            #print('trakt', show)
 
         max_airdate = datetime.date(1950, 1, 1)
 
@@ -215,12 +230,6 @@ def find_new_episodes(search=(), do_update=False, hulu=False, source=None, shows
         if shows:
             output[show] = '%s %s %s %s %s %s' % (show, title, max_s, max_e, str(max_airdate),
                                                   rating)
-            continue
-        if not source and mq_.imdb_ratings[show]['source'] in ('hulu', 'netflix', 'amazon'):
-            continue
-        if source in ('hulu', 'netflix', 'amazon') and mq_.imdb_ratings[show]['source'] != source:
-            continue
-        if imdb_url == '':
             continue
         if do_update:
             if max_airdate > datetime.date.today() - datetime.timedelta(days=30):
@@ -263,6 +272,7 @@ def find_new_episodes_parse():
     do_hulu = False
     do_source = False
     do_shows = False
+    do_trakt = False
     _args = []
 
     if hasattr(args, 'command'):
@@ -275,10 +285,12 @@ def find_new_episodes_parse():
                 do_source = arg
             elif arg == 'shows':
                 do_shows = True
+            elif arg == 'trakt':
+                do_trakt = True
             else:
                 _args.append(arg)
 
     if _command == 'tv':
         find_upcoming_episodes(do_update=do_update)
     else:
-        find_new_episodes(_args, do_update, source=do_source, shows=do_shows)
+        find_new_episodes(_args, do_update, source=do_source, shows=do_shows, trakt=do_trakt)
