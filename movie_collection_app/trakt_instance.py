@@ -388,11 +388,12 @@ def trakt_parse():
         if imdb in ti_.mq_.imdb_ratings:
             imdb = ti_.mq_.imdb_ratings[imdb]['link']
         if _args[0] == 'watched':
-            season, episode = _args[2], None
+            season, episodes = _args[2], [None]
             if len(_args) > 3:
-                episode = _args[3]
-            print(ti_.do_lookup(imdb_id=imdb), season, episode)
-            print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
+                episodes = map(int, _args[3].split(','))
+            for episode in episodes:
+                print(ti_.do_lookup(imdb_id=imdb), season, episode)
+                print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
         elif _args[0] == 'watchlist':
             print(ti_.add_show_to_watchlist(imdb_id=imdb))
     elif _command == 'rm':
