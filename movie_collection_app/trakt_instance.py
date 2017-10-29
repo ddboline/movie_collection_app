@@ -392,6 +392,7 @@ def trakt_parse():
             if len(_args) > 3:
                 episodes = map(int, _args[3].split(','))
             for episode in episodes:
+                print(season, episode)
                 print(ti_.do_lookup(imdb_id=imdb), season, episode)
                 print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
         elif _args[0] == 'watchlist':
