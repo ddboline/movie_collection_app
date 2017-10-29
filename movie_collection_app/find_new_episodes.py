@@ -212,14 +212,11 @@ def find_new_episodes(search=(), do_update=False, trakt=False, source=None, show
 
         if trakt and imdb_url not in trakt_cal_shows:
             continue
-        if source in ('hulu', 'netflix', 'amazon') and mq_.imdb_ratings[show]['source'] != source:
+        if (source != 'all' and source in ('hulu', 'netflix', 'amazon') and
+                mq_.imdb_ratings[show]['source'] != source):
             continue
         if not source and mq_.imdb_ratings[show]['source'] in ('hulu', 'netflix', 'amazon'):
             continue
-        #if not trakt and imdb_url not in trakt_watchlist_shows:
-            #print('non trakt', show)
-        #else:
-            #print('trakt', show)
 
         max_airdate = datetime.date(1950, 1, 1)
 
@@ -282,6 +279,8 @@ def find_new_episodes_parse():
             elif arg == 'update':
                 do_update = True
             elif arg in ('hulu', 'netflix', 'amazon'):
+                do_source = arg
+            elif arg == 'all':
                 do_source = arg
             elif arg == 'shows':
                 do_shows = True
