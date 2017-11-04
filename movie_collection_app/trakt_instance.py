@@ -374,10 +374,10 @@ class TraktInstance(object):
             show = ep_.show.title
             season, episode = ep_.pk
             airdate = ep_.first_aired.date()
-            
+
             if airdate > maxdate:
                 continue
-            
+
             airdate = airdate.isoformat()
 
             imdb_url = ep_.show.get_key('imdb')
@@ -388,16 +388,19 @@ class TraktInstance(object):
             if (do_source != 'all' and do_source in ('hulu', 'netflix', 'amazon') and
                     mq_.imdb_ratings.get(show, {}).get('source') != do_source):
                 continue
-            if (not do_source and self.mq_.imdb_ratings.get(show, {}).get('source') in ('hulu', 'netflix', 'amazon')):
+            if (not do_source and self.mq_.imdb_ratings.get(
+                    show, {}).get('source') in ('hulu', 'netflix', 'amazon')):
                 continue
 
             eprating, rating = -1, -1
             rating = self.mq_.imdb_ratings.get(show, {}).get('rating', -1)
             title = self.mq_.imdb_ratings.get(show, {}).get('title', show)
-            eprating = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get('rating', -1)
-            eptitle = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get('eptitle', show)
-            output.append('%s %s %s %d %d %0.2f/%0.2f %s' % (
-                show, title, eptitle, season, episode, eprating, rating, airdate))
+            eprating = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get(
+                'rating', -1)
+            eptitle = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get(
+                'eptitle', show)
+            output.append('%s %s %s %d %d %0.2f/%0.2f %s' % (show, title, eptitle, season, episode,
+                                                             eprating, rating, airdate))
         print('\n'.join(output))
 
 
@@ -431,9 +434,9 @@ def trakt_parse():
                         k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())
                                     if v['season'] == int(_args[2])))
                 else:
-                    print('\n'.join(
-                        '%s : %s' % (k, v)
-                        for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb).get(imdb, {}).items())))
+                    print('\n'.join('%s : %s' % (k, v)
+                                    for k, v in sorted(
+                                        ti_.get_watched_shows(imdb_id=imdb).get(imdb, {}).items())))
             else:
                 print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
                                 for k, v in ti_.get_watched_shows().items()))

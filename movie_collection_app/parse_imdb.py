@@ -16,7 +16,7 @@ except ImportError:
 list_of_commands = ('tv', 'season=<>')
 help_text = 'commands=%s,[number]' % ','.join(list_of_commands)
 
-#additional_channels = ('BBCA', 'WCBS', 'WNBC', 'WNYW', 'WABC', 'FREEFRM')
+# additional_channels = ('BBCA', 'WCBS', 'WNBC', 'WNYW', 'WABC', 'FREEFRM')
 additional_channels = ('BBCA', 'WNYW', 'FREEFRM', 'FXX')
 veto_channels = ('Fox', 'MyNetwork', 'ABCF', 'HALMRK', 'WGNAMER')
 
