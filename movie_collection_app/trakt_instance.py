@@ -8,6 +8,8 @@ Created on Thu Oct  5 07:43:59 2017
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import os
 import json
+from dateutil.parser import parse
+import datetime
 from threading import Condition
 import argparse
 
@@ -46,6 +48,7 @@ class TraktInstance(object):
             self.mq_ = mq_
         else:
             self.mq_ = MovieCollection()
+        self.imdb_show_map = {v['link']: k for k, v in self.mq_.imdb_ratings.items()}
 
         self.is_authenticating = Condition()
 
@@ -344,6 +347,59 @@ class TraktInstance(object):
             result = Trakt['calendars/my/*'].get(media='shows', pagination=True)
             return result
 
+    def print_trakt_cal_episode(self, args):
+        do_hulu = False
+        do_source = False
+        do_shows = False
+        do_trakt = False
+
+        maxdate = datetime.date.today() + datetime.timedelta(days=90)
+
+        for arg in args:
+            try:
+                maxdate = parse(arg).date()
+                continue
+            except (TypeError, ValueError):
+                pass
+
+            if arg in ('hulu', 'netflix', 'amazon'):
+                do_source = arg
+            elif arg == 'all':
+                do_source = arg
+            elif arg == 'trakt':
+                do_trakt = True
+
+        output = []
+        for ep_ in self.get_calendar():
+            show = ep_.show.title
+            season, episode = ep_.pk
+            airdate = ep_.first_aired.date()
+            
+            if airdate > maxdate:
+                continue
+            
+            airdate = airdate.isoformat()
+
+            imdb_url = ep_.show.get_key('imdb')
+            show = self.imdb_show_map.get(imdb_url, show)
+
+            if do_trakt and imdb_url not in trakt_cal_shows:
+                continue
+            if (do_source != 'all' and do_source in ('hulu', 'netflix', 'amazon') and
+                    mq_.imdb_ratings.get(show, {}).get('source') != do_source):
+                continue
+            if (not do_source and self.mq_.imdb_ratings.get(show, {}).get('source') in ('hulu', 'netflix', 'amazon')):
+                continue
+
+            eprating, rating = -1, -1
+            rating = self.mq_.imdb_ratings.get(show, {}).get('rating', -1)
+            title = self.mq_.imdb_ratings.get(show, {}).get('title', show)
+            eprating = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get('rating', -1)
+            eptitle = self.mq_.imdb_episode_ratings.get(show, {}).get((season, episode), {}).get('eptitle', show)
+            output.append('%s %s %s %d %d %0.2f/%0.2f %s' % (
+                show, title, eptitle, season, episode, eprating, rating, airdate))
+        print('\n'.join(output))
+
 
 def trakt_parse():
     parser = argparse.ArgumentParser(description='find_new_episodes script')
@@ -410,7 +466,4 @@ def trakt_parse():
         elif _args[0] == 'watchlist':
             print(ti_.remove_show_to_watchlist(imdb_id=imdb))
     elif _command == 'cal':
-        print('\n'.join([
-            '%s %s %s' % (x.show.title, x.pk, x.first_aired.date().isoformat())
-            for x in ti_.get_calendar()
-        ]))
+        ti_.print_trakt_cal_episode(_args)
