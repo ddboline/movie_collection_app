@@ -383,8 +383,6 @@ class TraktInstance(object):
             imdb_url = ep_.show.get_key('imdb')
             show = self.imdb_show_map.get(imdb_url, show)
 
-            if do_trakt and imdb_url not in trakt_cal_shows:
-                continue
             if (do_source != 'all' and do_source in ('hulu', 'netflix', 'amazon') and
                     mq_.imdb_ratings.get(show, {}).get('source') != do_source):
                 continue
