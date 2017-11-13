@@ -342,6 +342,26 @@ class TraktInstance(object):
                 print(episodes)
                 return Trakt['sync/history'].remove(items=items)
 
+    def add_movie_to_watched(self, title=None, imdb_id=None):
+        if imdb_id:
+            show_obj = self.do_lookup(imdb_id)
+        elif title:
+            show_obj = self.do_query(title)
+        if isinstance(show_obj, list):
+            if len(show_obj) < 1:
+                return
+            else:
+                show_obj = show_obj[0]
+        if isinstance(show_obj, dict):
+            if not show_obj:
+                return
+            show_obj.values()[0]
+        print(show_obj)
+        with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            items = {'movies': [show_obj.to_dict()]}
+            print(show_obj)
+            return Trakt['sync/history'].add(items=items)
+
     def get_calendar(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
             result = Trakt['calendars/my/*'].get(media='shows', pagination=True)
@@ -445,13 +465,20 @@ def trakt_parse():
         if imdb in ti_.mq_.imdb_ratings:
             imdb = ti_.mq_.imdb_ratings[imdb]['link']
         if _args[0] == 'watched':
-            season, episodes = _args[2], [None]
-            if len(_args) > 3:
-                episodes = map(int, _args[3].split(','))
-            for episode in episodes:
-                print(season, episode)
-                print(ti_.do_lookup(imdb_id=imdb), season, episode)
-                print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
+            if _args[1] == 'tv':
+                imdb = _args[2]
+                if imdb in ti_.mq_.imdb_ratings:
+                    imdb = ti_.mq_.imdb_ratings[imdb]['link']
+                season, episodes = _args[3], [None]
+                if len(_args) > 4:
+                    episodes = map(int, _args[4].split(','))
+                for episode in episodes:
+                    print(season, episode)
+                    print(ti_.do_lookup(imdb_id=imdb), season, episode)
+                    print(ti_.add_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
+            else:
+                print(ti_.add_movie_to_watched(imdb_id=imdb))
+                print(ti_.add_movie_to_watched(title=imdb))
         elif _args[0] == 'watchlist':
             print(ti_.add_show_to_watchlist(imdb_id=imdb))
     elif _command == 'rm':
@@ -459,11 +486,15 @@ def trakt_parse():
         if imdb in ti_.mq_.imdb_ratings:
             imdb = ti_.mq_.imdb_ratings[imdb]['link']
         if _args[0] == 'watched':
-            season, episode = _args[2], None
-            if len(_args) > 3:
-                episode = _args[3]
-            print(ti_.do_lookup(imdb_id=imdb), season, episode)
-            print(ti_.remove_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
+            if _args[1] == 'tv':
+                imdb = _args[2]
+                if imdb in ti_.mq_.imdb_ratings:
+                    imdb = ti_.mq_.imdb_ratings[imdb]['link']
+                season, episode = _args[3], None
+                if len(_args) > 4:
+                    episode = _args[4]
+                print(ti_.do_lookup(imdb_id=imdb), season, episode)
+                print(ti_.remove_episode_to_watched(imdb_id=imdb, season=season, episode=episode))
         elif _args[0] == 'watchlist':
             print(ti_.remove_show_to_watchlist(imdb_id=imdb))
     elif _command == 'cal':
