@@ -227,8 +227,11 @@ def get_bad_channels(available_dates, bad_channels):
     ]]
 
 
-def parse_imdb(title='the bachelor'):
-    resp = t_request('http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title}))
+def parse_imdb(title='the bachelor', proxy=False):
+    endpoint = 'http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title})
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
+    resp = t_request(endpoint)
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -240,14 +243,17 @@ def parse_imdb(title='the bachelor'):
                 for a in td.find_all('a'):
                     if hasattr(a, 'attrs'):
                         link = a.attrs['href'].split('/')[2]
-                        rating_ = parse_imdb_rating(link)
+                        rating_ = parse_imdb_rating(link, proxy=proxy)
                         yield title_, link, rating_[0]
 
 
-def parse_imdb_rating(title='tt0313038'):
+def parse_imdb_rating(title='tt0313038', proxy=False):
+    endpoint = 'http://www.imdb.com/title/%s' % title
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
     if not title.startswith('tt'):
         return -1, -1
-    resp_ = t_request('http://www.imdb.com/title/%s' % title)
+    resp_ = t_request(endpoint)
     soup_ = BeautifulSoup(resp_.text, 'html.parser')
     rating = -1
     for span in soup_.find_all('span'):
@@ -312,9 +318,12 @@ def parse_imdb_rating_mobile(title='tt0313038', proxy=False):
     return float(rating_), int(nrating_.replace(',', '')), entry_type
 
 
-def parse_imdb_mobile_tv(title='the bachelor'):
+def parse_imdb_mobile_tv(title='the bachelor', proxy=False):
+    endpoint = 'http://m.imdb.com/find?%s' % urlencode({'q': title})
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
     try:
-        resp = t_request('http://m.imdb.com/find?%s' % urlencode({'q': title}))
+        resp = t_request(endpoint)
     except requests.exceptions.ConnectionError as exc:
         print(title, exc)
         raise
@@ -328,8 +337,11 @@ def parse_imdb_mobile_tv(title='the bachelor'):
             for a in div.find_all('a'):
                 if hasattr(a, 'attrs'):
                     link = a.attrs['href'].split('/')[2]
+                    endpoint = 'http://m.imdb.com/title/%s' % link
+                    if proxy:
+                        endpoint = proxy_uri.format(quote(endpoint))
                     try:
-                        resp_ = t_request('http://m.imdb.com/title/%s' % link)
+                        resp_ = t_request(endpoint)
                     except requests.exceptions.ConnectionError as exc:
                         print(link, exc)
                         raise
@@ -346,10 +358,13 @@ def parse_imdb_mobile_tv(title='the bachelor'):
     return title, '', -1
 
 
-def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
+def parse_imdb_episode_list(imdb_id='tt3230854', season=None, proxy=False):
     number_of_episodes = defaultdict(int)
+    endpoint = 'http://m.imdb.com/title/%s/episodes' % imdb_id
+    if proxy:
+        endpoint = proxy_uri.format(quote(endpoint))
     try:
-        resp = t_request('http://m.imdb.com/title/%s/episodes' % imdb_id)
+        resp = t_request(endpoint)
     except requests.exceptions.ConnectionError as exc:
         print(imdb_id, exc)
         return
@@ -366,6 +381,8 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
 
             episodes_url = 'http://www.imdb.com/title/%s/episodes/%s' \
                            % (imdb_id, link)
+            if proxy:
+                episodes_url = proxy_uri.format(quote(episodes_url))
             resp_ = t_request(episodes_url)
             soup_ = BeautifulSoup(resp_.text, 'html.parser')
             for div in soup_.find_all('div'):
@@ -401,7 +418,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                             if len(epi_url) > 2:
                                 epi_url = epi_url[2]
                                 epi_title = a_.text.strip()
-                                rating, nrating = parse_imdb_rating(epi_url)
+                                rating, nrating = parse_imdb_rating(epi_url, proxy=proxy)
                             else:
                                 print('epi_url', epi_url)
                                 epi_url = ''
@@ -411,7 +428,7 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None):
                 yield season_, -1, None, number_of_episodes[season_], -1, 'season', None
 
 
-def parse_imdb_main(name, do_tv, do_update, season):
+def parse_imdb_main(name, do_tv, do_update, season, proxy=False):
     from movie_collection_app.movie_collection import MovieCollection
 
     mc_ = MovieCollection()
@@ -424,14 +441,14 @@ def parse_imdb_main(name, do_tv, do_update, season):
             imdb_link = mc_.imdb_ratings[show_]['link']
             rating = mc_.imdb_ratings[show_]['rating']
         else:
-            title, imdb_link, rating = parse_imdb_mobile_tv(name)
+            title, imdb_link, rating = parse_imdb_mobile_tv(name, proxy=proxy)
             for show, val in mc_.imdb_ratings.items():
                 if val['link'] == imdb_link:
                     show_ = show
                     break
         print(title, imdb_link, rating)
         if season == -1:
-            for item in parse_imdb_episode_list(imdb_link, season=-1):
+            for item in parse_imdb_episode_list(imdb_link, season=-1, proxy=proxy):
                 season_, _, _, neps, _, _, _ = item
                 print(title, season_, neps)
         elif show_:
@@ -447,11 +464,11 @@ def parse_imdb_main(name, do_tv, do_update, season):
                 ep_title = row['eptitle']
                 print(title, season_, episode, airdate, ep_rating, ep_title)
         else:
-            for item in parse_imdb_episode_list(imdb_link, season=season):
+            for item in parse_imdb_episode_list(imdb_link, season=season, proxy=proxy):
                 season_, episode, airdate, ep_rating, _, ep_title, ep_url = item
                 print(title, season_, episode, airdate, ep_rating, ep_title)
     else:
-        for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name)):
+        for idx, (title, imdb_link, rating) in enumerate(parse_imdb(name, proxy=proxy)):
             if idx > 2:
                 break
             print(idx, title, imdb_link, rating)
@@ -485,4 +502,4 @@ def parse_imdb_argparse():
             else:
                 name.append(arg.replace('_', ' '))
     name = ' '.join(name)
-    return parse_imdb_main(name, do_tv, do_update, season)
+    return parse_imdb_main(name, do_tv, do_update, season, proxy=True)

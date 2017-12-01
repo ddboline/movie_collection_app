@@ -208,9 +208,9 @@ class TraktInstance(object):
         show_ = show.replace('_', ' ')
         title = None
         if type_ == 'tv':
-            title, imdb_link, rating = parse_imdb_mobile_tv(show_)
+            title, imdb_link, rating = parse_imdb_mobile_tv(show_, proxy=True)
         else:
-            for title, imdb_link, rating in parse_imdb(show_):
+            for title, imdb_link, rating in parse_imdb(show_, proxy=True):
                 if 'TV Series' not in title and 'TV Mini-Series' not in title:
                     break
         if imdb_link != imdb_url:

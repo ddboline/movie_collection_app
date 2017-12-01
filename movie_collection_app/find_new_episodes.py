@@ -117,14 +117,14 @@ def find_upcoming_episodes(df=None, do_update=False):
         if not imdb_url:
             continue
 
-        for item in parse_imdb_episode_list(imdb_url, season=-1):
+        for item in parse_imdb_episode_list(imdb_url, season=-1, proxy=True):
             season = item[0]
             nepisodes = item[3]
             if season < max_s:
                 continue
             if nepisodes == len([k for k, v in season_episode_ratings[season].items() if v > 0]):
                 continue
-            parse_imdb_main(show, do_tv=True, do_update=do_update, season=season)
+            parse_imdb_main(show, do_tv=True, do_update=do_update, season=season, proxy=True)
 
     return df
 
