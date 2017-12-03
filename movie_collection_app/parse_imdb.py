@@ -229,8 +229,8 @@ def get_bad_channels(available_dates, bad_channels):
 
 def parse_imdb(title='the bachelor', proxy=False):
     endpoint = 'http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title})
-    if proxy:
-        endpoint = proxy_uri.format(quote(endpoint))
+    #if proxy:
+    #    endpoint = proxy_uri.format(quote(endpoint))
     resp = t_request(endpoint)
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
