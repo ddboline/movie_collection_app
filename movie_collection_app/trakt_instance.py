@@ -404,7 +404,7 @@ class TraktInstance(object):
             show = self.imdb_show_map.get(imdb_url, show)
 
             if (do_source != 'all' and do_source in ('hulu', 'netflix', 'amazon') and
-                    mq_.imdb_ratings.get(show, {}).get('source') != do_source):
+                    self.mq_.imdb_ratings.get(show, {}).get('source') != do_source):
                 continue
             if (not do_source and self.mq_.imdb_ratings.get(
                     show, {}).get('source') in ('hulu', 'netflix', 'amazon')):
