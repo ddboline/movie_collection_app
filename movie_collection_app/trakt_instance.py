@@ -84,7 +84,9 @@ class TraktInstance(object):
         poller.start(daemon=False)
 
         # Wait for authentication to complete
-        return self.is_authenticating.wait()
+        result = self.is_authenticating.wait()
+        self.store_auth()
+        return result
 
     def run(self):
 
