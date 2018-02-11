@@ -88,9 +88,9 @@ class MovieCollection(object):
         show_ = show.replace('_', ' ')
         title = None
         if type_ == 'tv':
-            title, imdb_link, rating = parse_imdb_mobile_tv(show_, proxy=True)
+            title, imdb_link, rating = parse_imdb_mobile_tv(show_, proxy=False)
         else:
-            for title, imdb_link, rating in parse_imdb(show_, proxy=True):
+            for title, imdb_link, rating in parse_imdb(show_, proxy=False):
                 if 'TV Series' not in title and 'TV Mini-Series' not in title:
                     break
         if title is None:
@@ -149,12 +149,12 @@ class MovieCollection(object):
                 idx += 1
             epi_rating_items = []
             print(show_, url)
-            for item in parse_imdb_episode_list(imdb_id=url, season=-1, proxy=True):
+            for item in parse_imdb_episode_list(imdb_id=url, season=-1, proxy=False):
                 season_ = item[0]
                 if all(x is not None for x in (show, season)) \
                         and season_ != season:
                     continue
-                for item_ in parse_imdb_episode_list(imdb_id=url, season=season_, proxy=True):
+                for item_ in parse_imdb_episode_list(imdb_id=url, season=season_, proxy=False):
                     se_, epi, ad_, rt_, _, eti, eurl = item_
                     itdict = {
                         'id': idx,
@@ -201,7 +201,7 @@ class MovieCollection(object):
                     and self.imdb_episode_ratings[show]:
                 season = max(k[0] for k in self.imdb_episode_ratings[show])
             else:
-                season = list(parse_imdb_episode_list(link, season=-1, proxy=True))[-1][0]
+                season = list(parse_imdb_episode_list(link, season=-1, proxy=False))[-1][0]
             tmp = [
                 k for k, v in self.imdb_episode_ratings[show].items()
                 if k[0] == season and v['airdate'] == airdate_
