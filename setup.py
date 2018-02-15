@@ -28,7 +28,7 @@ else:
 
 setup(
     name='movie_collection_app',
-    version='0.0.3.9',
+    version='0.0.4.0',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',
