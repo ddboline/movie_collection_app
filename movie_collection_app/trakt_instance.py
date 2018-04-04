@@ -102,9 +102,12 @@ class TraktInstance(object):
 
     def get_watchlist_shows(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
+            shows = Trakt['sync/watchlist'].shows(pagination=True)
+            if shows is None:
+                return {}
             return {
                 x.get_key('imdb'): x
-                for x in Trakt['sync/watchlist'].shows(pagination=True).values()
+                for x in shows.values()
             }
 
     def get_watchlist_seasons(self):
@@ -118,7 +121,10 @@ class TraktInstance(object):
     def get_watched_shows(self, imdb_id=None):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
             results = {}
-            for show in Trakt['sync/watched'].shows(pagination=True).values():
+            watched = Trakt['sync/watched'].shows(pagination=True)
+            if watched is None:
+                return {}
+            for show in watched.values():
                 title = show.title
                 imdb_url = show.get_key('imdb')
                 if imdb_id is not None and imdb_url != imdb_id:
@@ -366,8 +372,7 @@ class TraktInstance(object):
 
     def get_calendar(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
-            result = Trakt['calendars/my/*'].get(media='shows', pagination=True)
-            return result
+            return Trakt['calendars/my/*'].get(media='shows', pagination=True)
 
     def print_trakt_cal_episode(self, args):
         do_hulu = False
@@ -392,7 +397,10 @@ class TraktInstance(object):
                 do_trakt = True
 
         output = []
-        for ep_ in self.get_calendar():
+        cal = self.get_calendar()
+        if cal is None:
+            return
+        for ep_ in cal:
             show = ep_.show.title
             season, episode = ep_.pk
             airdate = ep_.first_aired.date()

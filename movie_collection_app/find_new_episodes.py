@@ -136,7 +136,11 @@ def find_new_episodes(search=(), do_update=False, trakt=False, source=None, show
 
     trakt_watchlist_shows = ti_.get_watchlist_shows()
     trakt_watched_shows = ti_.get_watched_shows()
-    trakt_cal_shows = {x.show.get_key('imdb'): x.show for x in ti_.get_calendar()}
+    trakt_cal_shows = ti_.get_calendar()
+    if trakt_cal_shows is None:
+        trakt_cal_shows = {}
+    else:
+        trakt_cal_shows = {x.show.get_key('imdb'): x.show for x in trakt_cal_shows}
 
     current_shows = set()
     max_season = {}
