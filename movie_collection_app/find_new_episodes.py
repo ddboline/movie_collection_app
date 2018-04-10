@@ -181,7 +181,6 @@ def find_new_episodes(search=(), do_update=False, trakt=False, source=None, show
         if imdb_url not in imdb_show_map:
             show = re.sub('[^A-Za-z0-9 ]', '', showinfo.title).lower().replace(' ', '_')
             mq_.imdb_ratings[show] = ti_.get_imdb_rating(show, imdb_url)
-            print(mq_.imdb_ratings[show])
         else:
             show = imdb_show_map[imdb_url]
 
