@@ -52,12 +52,10 @@ class TraktInstance(object):
 
         self.is_authenticating = Condition()
 
-        self.authorization = None
-
         # Bind trakt events
         Trakt.on('oauth.token_refreshed', self.on_token_refreshed)
 
-        self.read_auth()
+        self.authorization = self.read_auth()
 
         if self.authorization is None:
             self.authenticate()
@@ -205,9 +203,9 @@ class TraktInstance(object):
 
     def read_auth(self):
         if not os.path.exists(self.auth_token):
-            self.authorization = None
+            return None
         with open(self.auth_token, 'r') as f:
-            self.authorization = json.load(f)
+            return json.load(f)
 
     def get_imdb_rating(self, show, imdb_url, type_='tv'):
 
