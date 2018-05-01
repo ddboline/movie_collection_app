@@ -231,7 +231,7 @@ def get_bad_channels(available_dates, bad_channels):
 def parse_imdb(title='the bachelor', proxy=False):
     endpoint = 'http://www.imdb.com/find?%s' % urlencode({'s': 'all', 'q': title})
     if proxy:
-       endpoint = proxy_uri + quote(endpoint)
+        endpoint = proxy_uri + quote(endpoint)
     resp = t_request(endpoint)
     if resp.status_code != 200:
         raise Exception('bad status %s' % resp.status_code)
@@ -360,8 +360,8 @@ def parse_imdb_episode_list(imdb_id='tt3230854', season=None, proxy=False):
             for div in soup_.find_all('div'):
                 if 'info' in div.attrs.get('class', []) \
                         and div.attrs.get('itemprop', None) == 'episodes':
-                    (episode, airdate, rating, nrating, epi_title, epi_url) = (
-                        -1, None, -1, -1, None, None)
+                    (episode, airdate, rating, nrating, epi_title, epi_url) = (-1, None, -1, -1,
+                                                                               None, None)
                     for meta in div.find_all('meta'):
                         if meta.attrs.get('itemprop', None) == 'episodeNumber':
                             episode = meta.attrs.get('content', -1)
