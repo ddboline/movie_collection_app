@@ -325,7 +325,7 @@ def parse_imdb_rating_mobile(title='tt0313038', proxy=False):
 
 def parse_imdb_mobile_tv(title='the bachelor', proxy=False):
     for title, link, rating in parse_imdb(title=title, proxy=proxy):
-        if 'TV Series' in title:
+        if 'TV Series' in title or 'TV Mini-Series' in title:
             return title, link, rating
     return title, '', -1
 
