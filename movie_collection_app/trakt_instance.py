@@ -103,10 +103,7 @@ class TraktInstance(object):
             shows = Trakt['sync/watchlist'].shows(pagination=True)
             if shows is None:
                 return {}
-            return {
-                x.get_key('imdb'): x
-                for x in shows.values()
-            }
+            return {x.get_key('imdb'): x for x in shows.values()}
 
     def get_watchlist_seasons(self):
         with Trakt.configuration.oauth.from_response(self.authorization, refresh=True):
@@ -456,13 +453,13 @@ def trakt_parse():
                 if imdb in ti_.mq_.imdb_ratings:
                     imdb = ti_.mq_.imdb_ratings[imdb]['link']
                 if len(_args) > 2:
-                    print('\n'.join('%s : %s' % (
-                        k, v) for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())
-                                    if v['season'] == int(_args[2])))
+                    print('\n'.join(
+                        '%s : %s' % (k, v)
+                        for k, v in sorted(ti_.get_watched_shows(imdb_id=imdb)[imdb].items())
+                        if v['season'] == int(_args[2])))
                 else:
-                    print('\n'.join('%s : %s' % (k, v)
-                                    for k, v in sorted(
-                                        ti_.get_watched_shows(imdb_id=imdb).get(imdb, {}).items())))
+                    print('\n'.join('%s : %s' % (k, v) for k, v in sorted(
+                        ti_.get_watched_shows(imdb_id=imdb).get(imdb, {}).items())))
             else:
                 print('\n'.join('%s : %s %s' % (k, [x['title'] for x in v.values()][0], len(v))
                                 for k, v in ti_.get_watched_shows().items()))
