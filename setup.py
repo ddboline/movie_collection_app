@@ -20,15 +20,14 @@ console_scripts = (('make-queue', 'movie_collection_app.make_queue:make_queue_pa
                     'movie_collection_app.find_new_episodes:find_new_episodes_parse'),
                    ('trakt-app', 'movie_collection_app.trakt_instance:trakt_parse'))
 
-if sys.version_info.major == 2:
-    console_scripts = ['%s = %s' % (x, y) for x, y in console_scripts]
-else:
-    v = sys.version_info.major
-    console_scripts = ['%s%s = %s' % (x, v, y) for x, y in console_scripts]
+console_scripts = ['%s = %s' % (x, y) for x, y in console_scripts]
+
+v = sys.version_info.major
+console_scripts.extend('%s%s = %s' % (x, v, y) for x, y in console_scripts)
 
 setup(
     name='movie_collection_app',
-    version='0.0.4.4',
+    version='0.0.4.5',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',
