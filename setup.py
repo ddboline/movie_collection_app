@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import sys
 from setuptools import setup
 
-console_scripts = (('make-queue', 'movie_collection_app.make_queue:make_queue_parse'),
+console_scripts_ = (('make-queue', 'movie_collection_app.make_queue:make_queue_parse'),
                    ('parse-imdb', 'movie_collection_app.parse_imdb:parse_imdb_argparse'),
                    ('movie-queue-flask',
                     'movie_collection_app.movie_queue_flask:run_make_queue_flask'),
@@ -20,10 +20,10 @@ console_scripts = (('make-queue', 'movie_collection_app.make_queue:make_queue_pa
                     'movie_collection_app.find_new_episodes:find_new_episodes_parse'),
                    ('trakt-app', 'movie_collection_app.trakt_instance:trakt_parse'))
 
-console_scripts = ['%s = %s' % (x, y) for x, y in console_scripts]
+console_scripts = ['%s = %s' % (x, y) for x, y in console_scripts_]
 
 v = sys.version_info.major
-console_scripts.extend('%s%s = %s' % (x, v, y) for x, y in console_scripts)
+console_scripts.extend('%s%s = %s' % (x, v, y) for x, y in console_scripts_)
 
 setup(
     name='movie_collection_app',
