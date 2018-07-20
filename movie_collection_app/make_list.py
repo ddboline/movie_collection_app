@@ -154,7 +154,7 @@ def make_list(tmpfile,
                             nhour = int(nmin / 60.)
                             timeval = '%02i:%02i:%02i' % (nhour, nmin % 60, nsecs % 60)
                     if timeval == 0:
-                        _cmd = run_command('avconv -i %s 2>&1' % cur, do_popen=True)
+                        _cmd = run_command('ffprobe %s 2>&1' % cur, do_popen=True)
                         for line in _cmd:
                             _line = line.split()
                             if _line[0] == 'Duration:':
