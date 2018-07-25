@@ -61,6 +61,8 @@ def _return_tvshows():
     output = check_output(['/home/ddboline/bin/make_queue', 'tvshows'])
     output_str.append('<center><H3>')
     output_str.append('<table border="0">')
+    if hasattr(output, 'decode'):
+        output = output.decode()
     for line in output.split('\n'):
         if '.avi' in line or '.mp4' in line:
             continue
