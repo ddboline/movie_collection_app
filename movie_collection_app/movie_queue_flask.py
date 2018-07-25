@@ -197,6 +197,8 @@ def request_transcode(show):
     try:
         avifile = None
         output = check_output(['/home/ddboline/bin/make_queue', 'list', show])
+        if hasattr(output, 'decode'):
+            output = output.decode()
         for line in output.split('\n'):
             try:
                 tmp = line.split()
