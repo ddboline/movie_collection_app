@@ -98,6 +98,8 @@ def _return_tvshow(show):
     ]
     output_str.append('<center><H3><table border="0">')
     output = check_output(['/home/ddboline/bin/make_queue', 'web', show])
+    if hasattr(output, 'decode'):
+        output = output.decode()
     for line in output.split('\n'):
         show_ = line.split()
         index = -1
