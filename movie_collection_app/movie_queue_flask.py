@@ -11,7 +11,7 @@ from flask import Flask, jsonify
 from socket import gethostbyname
 from logging import getLogger as get_logger
 from subprocess import check_output, call
-import urllib
+from six.moves.urllib.parse import unquote
 
 app = Flask(__name__)
 log = get_logger()
@@ -159,7 +159,7 @@ def _return_tvshow(show):
 @app.route('/list/<show>', methods=['GET'])
 def return_tvshow(show):
     try:
-        show = urllib.unquote(show)
+        show = unquote(show)
         output_str = ['<!DOCTYPE HTML>', '<html>', '<body>']
         output_str.append('<H3 align="center">')
         output_str.append('<a href=\"/tvshows\">Go Back</a>')
