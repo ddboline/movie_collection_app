@@ -38,10 +38,12 @@ def get_length_of_mpg(fname='%s/netflix/mpg/test_roku_0.mpg' % HOMEDIR):
     ''' get length of mpg/avi/mp4 with avconv '''
     if not os.path.exists(fname):
         return -1
-    command = 'avconv -i %s 2>&1' % fname
+    command = 'ffprobe %s 2>&1' % fname
     _cmd = Popen(command, shell=True, stdout=PIPE, close_fds=True).stdout
     nsecs = 0
     for line in _cmd:
+        if hasattr(line, 'decode'):
+            line = line.decode()
         _line = line.split()
         if _line[0] == 'Duration:':
             items = _line[1].strip(',').split(':')

@@ -156,6 +156,8 @@ def make_list(tmpfile,
                     if timeval == 0:
                         _cmd = run_command('ffprobe %s 2>&1' % cur, do_popen=True)
                         for line in _cmd:
+                            if hasattr(line, 'decode'):
+                                line = line.decode()
                             _line = line.split()
                             if _line[0] == 'Duration:':
                                 items = _line[1].strip(',').split(':')
