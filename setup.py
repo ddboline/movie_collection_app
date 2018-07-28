@@ -27,7 +27,7 @@ console_scripts.extend('%s%s = %s' % (x, v, y) for x, y in console_scripts_)
 
 setup(
     name='movie_collection_app',
-    version='0.0.4.7',
+    version='0.0.4.8',
     author='Daniel Boline',
     author_email='ddboline@gmail.com',
     description='movie_collection_app',
