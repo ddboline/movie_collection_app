@@ -141,6 +141,8 @@ def make_list(tmpfile,
                 print('\n'.join(l.strip() for l in run_command(command, do_popen=True)))
             else:
                 for line in run_command(command, do_popen=True):
+                    if hasattr(line, 'decode'):
+                        line = line.decode()
                     cur = line.split()[0]
                     _cmd = run_command(
                         'aviindex -i '
