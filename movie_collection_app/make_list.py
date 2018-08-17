@@ -8,6 +8,7 @@ import glob
 import datetime
 import tempfile
 import random
+from six import string_types
 try:
     from util import run_command
 except ImportError:
@@ -295,7 +296,7 @@ def make_list_main():
                 else:
                     tv_string_ = os.sys.argv[2:]
                     if isinstance(tv_string_, str)\
-                            or isinstance(tv_string_, unicode):
+                            or isinstance(tv_string_, string_types):
                         tv_string_ = [tv_string_]
         if os.sys.argv[1] == 'rand':
             do_random_ = True
@@ -308,7 +309,7 @@ def make_list_main():
             if len(os.sys.argv) > 2:
                 tv_string_ = os.sys.argv[2:]
                 if isinstance(tv_string_, str)\
-                        or isinstance(tv_string_, unicode):
+                        or isinstance(tv_string_, string_types):
                     tv_string_ = [tv_string_]
         if os.sys.argv[1] == '6' or os.sys.argv[1] == 'mov':
             do_movies_ = True
